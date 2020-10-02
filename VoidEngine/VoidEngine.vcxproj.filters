@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{7029f043-ec5e-4893-90aa-3fd2fa20bf5c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -26,5 +29,13 @@
     <ClInclude Include="ShaderReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="BasicVertShader.vs">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="BasicFragShader.fs">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
