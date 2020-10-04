@@ -2,49 +2,45 @@
 
 class oldcube {
 public:
-	float* verts;
-	int index[36] = {
-		//top
-		1, 2, 4,
-		2, 3, 4,
-		//front
-		2, 3, 7,
-		2, 6, 7,
-		//right
-		4, 3, 7,
-		4, 8, 7,
-		//left
-		2, 1, 5,
-		2, 6, 5,
-		//bottom
-		7, 6, 5,
-		7, 8, 5,
-		//back
-		4, 1, 5,
-		4, 8, 5
-	};
-	oldcube(float color[], float scale = 1.0f) {
-		float temp[48] = {
+	float verts[48] = {
 			//Pos				//color
 		//1
-			-0.5f * scale,  0.5f * scale, -0.5f * scale, color[0], color[1],color[2],
+			-0.5f,  0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
 		//2	    
-			-0.5f * scale,  0.5f * scale,  0.5f * scale, color[0], color[1],color[2],
+			-0.5f,  0.5f,  0.5f, 0.5f, 0.5f, 0.5f,
 		//3	    
-			0.5f * scale,  0.5f * scale,  0.5f * scale, color[0], color[1],color[2],
+			0.5f ,  0.5f,  0.5f, 0.5f, 0.5f, 0.5f,
 		//4	    
-			0.5f * scale,  0.5f * scale, -0.5f * scale, color[0], color[1],color[2],
+			0.5f ,  0.5f, -0.5f, 0.5f, 0.5f, 0.5f,
 		//5
-			-0.5f * scale, -0.5f * scale, -0.5f * scale, color[0], color[1],color[2],
+			-0.5f, -0.5f, -0.5f, 1.0f, 0.5f, 0.5f,
 		//6	   
-			-0.5f * scale, -0.5f * scale,  0.5f * scale, color[0], color[1],color[2],
+			-0.5f, -0.5f,  0.5f, 0.5f, 0.5f, 0.5f,
 		//7	   
-			0.5f * scale, -0.5f * scale,  0.5f * scale, color[0], color[1],color[2],
+			0.5f , -0.5f,  0.5f, 0.5f, 0.5f, 0.5f,
 		//8	   
-			0.5f * scale, -0.5f * scale, -0.5f * scale, color[0], color[1],color[2]
+			0.5f , -0.5f, -0.5f, 0.5f, 0.5f, 0.5f
 		};
-		verts = temp;
-	}
+	unsigned int index[36] = {
+		//top
+		0, 1, 3,
+		1, 2, 3,
+		//front
+		1, 2, 6,
+		1, 5, 6,
+		//right
+		3, 2, 6,
+		3, 7, 6,
+		//left
+		1, 0, 4,
+		1, 5, 4,
+		//bottom
+		6, 5, 4,
+		6, 7, 4,
+		//back
+		3, 0, 4,
+		3, 7, 4
+	};
 };
 class newcube {
 
