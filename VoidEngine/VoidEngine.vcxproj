@@ -155,6 +155,7 @@
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="primativeGen.h" />
     <ClInclude Include="ShaderReader.h" />
   </ItemGroup>
   <ItemGroup>
