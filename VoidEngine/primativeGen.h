@@ -1,11 +1,18 @@
 #pragma once
+#include <vector>
 
-class oldcube {
+struct Vertex {
+	glm::vec3 Position;
+	glm::vec3 Normal;
+	glm::vec3 Color;
+};
+
+class cube {
 public:
 	float verts[48] = {
-			//Pos				//color
+			//Pos				//normal
 		//1
-			-0.5f,  0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
+			-0.5f,  0.5f, -0.5f, 0.0f, 0.0f, 0.0f,	
 		//2	    
 			-0.5f,  0.5f,  0.5f, 0.5f, 0.5f, 0.5f,
 		//3	    
@@ -41,9 +48,6 @@ public:
 		3, 0, 4,
 		3, 7, 4
 	};
-};
-class newcube {
-
 };
 class testTriangle {
 public:
@@ -82,6 +86,92 @@ public:
 		verts[17] = color[2];
 	}
 };
-class BaseTriangle {
+class genericTerrain {
+public:
+	float verts[600] = { 0.0f, };
+	unsigned int index[486] = { 0, };
+	genericTerrain(float color[]) {
+		//create vertex
+		int vertex = 0;
+			for (float z = 0.4f; z > -0.5f; z -= 0.1f) {
+				for (float x = -0.4f; x < 0.5f; x += 0.1f) {
+					verts[vertex] = x; //X
+					verts[vertex + 1] = ((rand() % 20) - 10) / 1000.0f; //random y
+					verts[vertex + 2] = z; //z
+					//color
+					verts[vertex + 3] = color[0];
+					verts[vertex + 4] = color[1];
+					verts[vertex + 5] = color[2];
+					/* uncomment when we add texture
+					verts[vertex + 6] = uv[0];
+					verts[vertex + 7] = uv[1];
+					*/
+					vertex += 6;
+				}
+			}
+		//create index
+		for (int ind = 0, cor = 0; cor < 89; cor++) {
+			if ((cor + 1) % 10 == 0) {
+				cor++;
+			}
+			index[ind++] = cor;
+			index[ind++] = cor + 1;
+			index[ind++] = cor + 11;
 
+			index[ind++] = cor;
+			index[ind++] = cor + 10;
+			index[ind++] = cor + 11;
+			
+		}
+	}
 };
+
+class Mesh {
+public:
+	std::vector<Vertex> vertices;
+	std::vector<unsigned int> index;
+
+	Mesh(std::vector<Vertex> verts, std::vector<unsigned int> ind);
+	void Draw(Shader& shader);
+private:
+	//Render Data
+	unsigned int VAO, VBO, EBO;
+	void setupMesh();
+};
+
+Mesh::Mesh(std::vector<Vertex> verts, std::vector<unsigned int> ind) {
+	this->vertices = verts;
+	this->index = ind;
+
+	setupMesh();
+}
+
+void Mesh::setupMesh() {
+	glGenVertexArrays(1 , &VAO);
+	glGenBuffers(1, &VBO);
+	glGenBuffers(1, &EBO);
+
+	glBindVertexArray(VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, index.size() * sizeof(unsigned int), &index[0], GL_STATIC_DRAW);
+
+	//vertex Pos
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+
+	//vertex normals
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
+
+	glBindVertexArray(0);
+}
+
+void Mesh::Draw(Shader& shader) {
+	glBindVertexArray(VAO);
+	glDrawElements(GL_TRIANGLES, index.size(), GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+}

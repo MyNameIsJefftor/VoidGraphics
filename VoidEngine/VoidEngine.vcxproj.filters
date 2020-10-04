@@ -40,5 +40,11 @@
     <None Include="BasicFragShader.fs">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="normalShader.vs">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="normalFragShader.fs">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

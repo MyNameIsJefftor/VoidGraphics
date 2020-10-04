@@ -41,12 +41,19 @@ int main() {
 
 	//ShaderTime
 	Shader basic("BasicVertShader.vs", "BasicFragShader.fs");
+	Shader normal("nrmalShader.vs", "basicFragShader.fs");
 
 	//Create Cube
 	float color[] = {
 		0.5f,0.5f,0.5f
 	};
-	oldcube test = oldcube();
+	//cube test = cube();
+	genericTerrain floor = genericTerrain(color);
+
+	std::vector<Vertex> floorVerts;
+	for (int i = 0; i < sizeof(floor.verts); i++) {
+		
+	};
 
 
 	unsigned int VBO; //Vertex Buffer Object
@@ -58,23 +65,29 @@ int main() {
 	glBindVertexArray(VAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(test.verts), test.verts, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(floor.verts), floor.verts, GL_STATIC_DRAW);
 
 	unsigned int EBO; //Vertex Array object
 	glGenBuffers(1, &EBO);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(test.index), test.index, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(floor.index), floor.index, GL_STATIC_DRAW);
 
 	//Tell gl how to read our vertex
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
-	//Tell gl how to read our combined colors
+	//Tell gl how to read our combined colors // or normals if that is the case.
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3*sizeof(float)));
 	glEnableVertexAttribArray(1);
 
-	basic.use();
+	
+
+	////Tell gl how to read my texture data
+	//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6*sizeof(float)));
+	//glEnableVertexAttribArray(2);
+
+	//basic.use();
 
 	//Tell gl to put the universe into perspective
 	glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
@@ -97,10 +110,15 @@ int main() {
 	view = glm::translate(view, glm::vec3(0.0f, 0.0f,-3.0f));
 
 	glm::mat4 model = glm::mat4(1.0f);
-	model = glm::rotate(model, glm::radians(45.0f), glm::vec3(1.0f, 0.5f, 0.0f));
+	model = glm::rotate(model, glm::radians(15.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	model = glm::scale(model, glm::vec3(3.0f, 3.0f, 3.0f));
 
 	glEnable(GL_DEPTH_TEST);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+	glm::vec3 objColor = glm::vec3(0.5f, 0.5f, 0.5f);
+	glm::vec3 LightColor = glm::vec3(0.0f, 1.0f, 1.0f);
+	glm::vec3 lightPos = glm::vec3(0.0f, 1.0f, 0.0f);
 
 	while (!glfwWindowShouldClose(window)) {
 		//Get input
@@ -111,13 +129,18 @@ int main() {
 		glClearColor(0.1f, 0.4f, 0.2f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		basic.use();
-		basic.setMat("model", model);
-		basic.setMat("view", view);
-		basic.setMat("projection", proj);
+		//basic.use();
+		normal.use();
+		normal.setMat("model", model);
+		normal.setMat("view", view);
+		normal.setMat("projection", proj);
+		normal.setVec3("lightColor", LightColor);
+		normal.setVec3("lightPos", lightPos);
+		normal.setVec3("Color", objColor);
 		//model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.0f, 1.0f, 0.0f));
 		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+		//glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawElements(GL_TRIANGLES, 1000, GL_UNSIGNED_INT, 0);
 
 		//Swap the buffs. Check for events.
 		glfwSwapBuffers(window);
