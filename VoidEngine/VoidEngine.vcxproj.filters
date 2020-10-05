@@ -32,6 +32,9 @@
     <ClInclude Include="primativeGen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TestObj\test pyramid.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="BasicVertShader.vs">

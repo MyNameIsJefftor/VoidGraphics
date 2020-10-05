@@ -157,6 +157,7 @@
   <ItemGroup>
     <ClInclude Include="primativeGen.h" />
     <ClInclude Include="ShaderReader.h" />
+    <ClInclude Include="TestObj\test pyramid.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="BasicFragShader.fs" />
