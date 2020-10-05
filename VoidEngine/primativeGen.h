@@ -5,16 +5,22 @@ struct Vertex {
 	glm::vec3 Position;
 	glm::vec3 Color;
 	glm::vec3 Normal;
+	glm::vec2 TexCord;
+};
+
+struct Texture {
+	unsigned int id;
 };
 
 class Mesh {
 public:
 	std::vector<Vertex> vertices;
 	std::vector<unsigned int> index;
+	unsigned int TextureId;
 	Mesh() {
 
 	};
-	Mesh(std::vector<Vertex> verts, std::vector<unsigned int> ind);
+	Mesh(std::vector<Vertex> verts, std::vector<unsigned int> ind, unsigned int text);
 	virtual void Draw(Shader& shader);
 protected:
 	//Render Data
@@ -46,18 +52,25 @@ void Mesh::setupMesh() {
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
 
+	//vertex Texture
+	glEnableVertexAttribArray(3);
+	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCord));
+
 	glBindVertexArray(0);
 }
 
 void Mesh::Draw(Shader& shader) {
+	
+	glBindTexture(GL_TEXTURE_2D, TextureId);
 	glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLES, index.size(), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 }
 
-Mesh::Mesh(std::vector<Vertex> verts, std::vector<unsigned int> ind) {
+Mesh::Mesh(std::vector<Vertex> verts, std::vector<unsigned int> ind, unsigned int text) {
 	this->vertices = verts;
 	this->index = ind;
+	this->TextureId = text;
 
 	setupMesh();
 }
@@ -93,8 +106,7 @@ Mesh CreateCube() {
 		3, 0, 4,
 		3, 7, 4
 	};
-
-	return Mesh(cube, index);
+	return Mesh(cube, index, 1);
 }
 Mesh generatePlane(glm::vec3 Color = glm::vec3(0.5f, 0.5f, 0.5f)) {
 	//create verts
@@ -130,8 +142,8 @@ Mesh generatePlane(glm::vec3 Color = glm::vec3(0.5f, 0.5f, 0.5f)) {
 		index[ind++] = cor + 10;
 		index[ind++] = cor + 11;
 	}
-
-	return Mesh(Plane, index);
+	std::vector<Texture> empty;
+	return Mesh(Plane, index, 1);
 }
 /* junk code
 class cube {

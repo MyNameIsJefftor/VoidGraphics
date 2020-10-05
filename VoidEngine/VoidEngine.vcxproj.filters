@@ -35,6 +35,9 @@
     <ClInclude Include="TestObj\test pyramid.h">
       <Filter>Resource Files</Filter>
     </ClInclude>
+    <ClInclude Include="Light.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="BasicVertShader.vs">

@@ -1,14 +1,20 @@
 #include <iostream>
 
+//External tools
 #include <glad/glad.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#define STB_IMAGE_IMPLEMENTATION
+#include <STB/stb_image.h>
+
+//my stuff
 #include "ShaderReader.h"
 #include "primativeGen.h"
 #include "TestObj/test pyramid.h"
+#include "Light.h"
 
 
 void framebuffer_size_callback(GLFWwindow* windo, int width, int height);
@@ -56,6 +62,9 @@ int main() {
 		y = test_pyramid_data[i].nrm[1];
 		z = test_pyramid_data[i].nrm[2];
 		temp[i].Normal = glm::vec3(x, y, z);
+		x = test_pyramid_data[i].uvw[0];
+		y = test_pyramid_data[i].uvw[1];
+		temp[i].TexCord = glm::vec2(x, y);
 		temp[i].Color = glm::vec3(0.5f, 0.5f, 0.0f);
 	}
 	std::vector<unsigned int> tempInd;
@@ -63,11 +72,33 @@ int main() {
 	for (int i = 0; i < sizeof(test_pyramid_indicies)/sizeof(unsigned int); i++) {
 		tempInd[i] = test_pyramid_indicies[i];
 	}
-	Mesh bananas = Mesh(temp, tempInd);
+	// load and create a texture 
+	// -------------------------
+	unsigned int brick;
+	glGenTextures(1, &brick);
+	glBindTexture(GL_TEXTURE_2D, brick); //all upcoming GL_TEXTURE_2D ops effect this texture
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	int width, height, numColors;
+	unsigned char* data = stbi_load("Texture/bricks2.jpg", &width, &height, &numColors, 0);
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "Failed to load texture" << std::endl;
+	}
+	stbi_image_free(data);
 
-	Mesh cube = CreateCube();
+	Mesh pyramid = Mesh(temp, tempInd, brick);
 
-	Mesh Plane = generatePlane();
+	//Mesh cube = CreateCube();
+
+	//Mesh Plane = generatePlane();
 
 
 	//Camera Shenanigans
@@ -117,7 +148,9 @@ int main() {
 		normal.setMat("projection", proj);
 		normal.setVec3("lightColor", LightColor);
 		normal.setVec3("lightPos", lightPos);
-		bananas.Draw(normal);
+		normal.setFloat("Time", glfwGetTime());
+		normal.setVec3("ambiantLightColor", glm::vec3(0.2f,0.2f,0.2f));
+		pyramid.Draw(normal);
 		//floor.Draw(basic);
 		//glBindVertexArray(VAO);
 		////glDrawArrays(GL_TRIANGLES, 0, 3);
