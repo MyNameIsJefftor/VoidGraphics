@@ -13,8 +13,8 @@
 
 //my stuff
 #include "ShaderReader.h"
-#include "primativeGen.h"
-#include "Light.h"
+#include "Mesh.h"
+#include "Object.h"
 
 //header obj
 #include "TestObj/resources.h"
@@ -55,7 +55,7 @@ int main() {
 	Shader normal("normalShader.vs", "normalFragShader.fs");
 
 	//Mesh array
-	std::vector<Mesh> Objects;
+	std::vector<Object> Objects;
 
 	//Convert obj from header to my format
 	std::vector<Vertex> temp;
@@ -93,13 +93,16 @@ int main() {
 
 	Mesh pyramid = Mesh(temp, tempInd, texture);
 
-	Mesh cube = CreateCube();
+	//Mesh cube = CreateCube();
 
-	Mesh Plane = generatePlane();
+	//Mesh Plane = generatePlane();
 
-	Objects.push_back(pyramid);
-	//Objects.push_back(cube);
-	//Objects.push_back(Plane);
+	Object cube = { CreateCube(), glm::mat4(1.0f)};
+	Object plane = { generatePlane(3), glm::mat4(1.0f) };
+	plane.myPos = glm::translate(plane.myPos, glm::vec3(0.0f, -0.5f, 0.0f));
+	//Objects.push_back(pyramid);
+	Objects.push_back(cube);
+	Objects.push_back(plane);
 
 
 	//Camera Shenanigans
@@ -113,30 +116,30 @@ int main() {
 
 	glm::mat4 view;
 	view = glm::lookAt(
-		glm::vec3(0.0f, 0.0f, 3.0f),
+		glm::vec3(0.0f, 2.0f, 3.0f),
 		glm::vec3(0.0f, 0.0f, 0.0f),
 		glm::vec3(0.0f, 1.0f, 0.0f));
 
 	//Tell gl to put the universe into perspective
 	glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
 
-	view = glm::translate(view, glm::vec3(0.0f, 0.0f,-5.0f));
+	view = glm::translate(view, glm::vec3(0.0f, 0.0f,-0.0f));
 
 	glm::mat4 model = glm::mat4(1.0f);
-	model = glm::scale(model, glm::vec3(.2f, .2f, .2f));
+	//model = glm::scale(model, glm::vec3(.2f, .2f, .2f));
 
 	glEnable(GL_DEPTH_TEST);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	glm::vec3 LightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-	glm::vec3 lightPos = glm::vec3(0.0f, 0.0f, 3.0f);
+	glm::vec3 lightPos = glm::vec3(0.0f, 0.1f, 0.0f);
 
 	while (!glfwWindowShouldClose(window)) {
 		//Get input
 		processInput(window);
-		float lightz = 5.0f * sin(glfwGetTime());
-		float lightx = 5.0f * cos(glfwGetTime());
-		lightPos = glm::vec3(lightx, 0.0f, lightz);
+		/*float lightz = 0.5f * sin(glfwGetTime());
+		float lightx = 0.5f * cos(glfwGetTime());
+		lightPos = glm::vec3(lightx, 0.0f, lightz);*/
 		//Perform WRENDER
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -145,8 +148,6 @@ int main() {
 
 
 		//basic.use();
-		model = glm::rotate(model, glm::radians(0.001f), glm::vec3(0.0f, 1.0f, 0.0f));
-		normal.setMat("model", model);
 		normal.setMat("view", view);
 		normal.setMat("projection", proj);
 		normal.setVec3("lightColor", LightColor);
@@ -155,7 +156,8 @@ int main() {
 		normal.setVec3("ambiantLightColor", glm::vec3(0.2f, 0.2f, 0.2f));
 		normal.use();
 		for (int i = 0; i < Objects.size(); i++) {
-			Objects[i].Draw(normal);
+			normal.setMat("model", Objects[i].myPos);
+			Objects[i].myMesh.Draw(normal);
 		}
 		//floor.Draw(basic);
 		//glBindVertexArray(VAO);

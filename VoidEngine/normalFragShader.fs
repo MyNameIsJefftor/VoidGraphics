@@ -18,8 +18,8 @@ void main()
     vec3 lightDir = normalize(lightPos-FragPos);
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 diffuse = diff * lightColor;
-    vec3 NewColor = cos(Time/2) * Color;
-    NewColor = NewColor*FragPos*2;
+    vec3 NewColor = vec3(Color.x - FragPos.x, Color.y - FragPos.y, Color.z - FragPos.z);
+    NewColor = mix(NewColor, vec3(0.1,0.1,0.3),sin((Time+FragPos.z)/2));
     vec3 result = ambiantLightColor+NewColor;
     vec4 final = texture(theTex,Tex)*vec4(diffuse + result,1.0);
     FragColor = final;

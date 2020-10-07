@@ -29,17 +29,17 @@
     <ClInclude Include="ShaderReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="primativeGen.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="TestObj\test pyramid.h">
       <Filter>Resource Files</Filter>
     </ClInclude>
-    <ClInclude Include="Light.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="TestObj\resources.h">
       <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Object.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

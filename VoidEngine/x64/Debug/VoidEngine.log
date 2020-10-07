@@ -1,6 +1,4 @@
 ﻿  Main.cpp
-C:\Users\admin\Desktop\Progamming\pp4\Project\VoidGraphics\VoidEngine\primativeGen.h(64,63): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
-C:\Users\admin\Desktop\Progamming\pp4\Project\VoidGraphics\VoidEngine\Main.cpp(137,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\admin\Desktop\Progamming\pp4\Project\VoidGraphics\VoidEngine\Main.cpp(138,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\admin\Desktop\Progamming\pp4\Project\VoidGraphics\VoidEngine\Main.cpp(153,38): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\admin\Desktop\Progamming\pp4\Project\VoidGraphics\VoidEngine\Mesh.h(64,63): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+C:\Users\admin\Desktop\Progamming\pp4\Project\VoidGraphics\VoidEngine\Main.cpp(154,38): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
   VoidEngine.vcxproj -> C:\Users\admin\Desktop\Progamming\pp4\Project\VoidGraphics\VoidEngine\x64\Debug\VoidEngine.exe
