@@ -9,12 +9,16 @@
 #include <glm/gtc/type_ptr.hpp>
 #define STB_IMAGE_IMPLEMENTATION
 #include <STB/stb_image.h>
+#include <KTX/ktx.h>
 
 //my stuff
 #include "ShaderReader.h"
 #include "primativeGen.h"
-#include "TestObj/test pyramid.h"
 #include "Light.h"
+
+//header obj
+#include "TestObj/resources.h"
+#include "TestObj/test pyramid.h"
 
 
 void framebuffer_size_callback(GLFWwindow* windo, int width, int height);
@@ -50,55 +54,52 @@ int main() {
 	Shader basic("BasicVertShader.vs", "BasicFragShader.fs");
 	Shader normal("normalShader.vs", "normalFragShader.fs");
 
+	//Mesh array
+	std::vector<Mesh> Objects;
+
 	//Convert obj from header to my format
 	std::vector<Vertex> temp;
-	temp.resize(sizeof(test_pyramid_data)/sizeof(OBJ_VERT));
-	for (int i = 0; i < sizeof(test_pyramid_data) / sizeof(OBJ_VERT); i++) {
-		float x = test_pyramid_data[i].pos[0];
-		float y = test_pyramid_data[i].pos[1];
-		float z = test_pyramid_data[i].pos[2];
+	temp.resize(sizeof(resources_data)/sizeof(OBJ_VERT));
+	for (int i = 0; i < sizeof(resources_data) / sizeof(OBJ_VERT); i++) {
+		float x = resources_data[i].pos[0];
+		float y = resources_data[i].pos[1];
+		float z = resources_data[i].pos[2];
 		temp[i].Position = glm::vec3(x,y,z);
-		x = test_pyramid_data[i].nrm[0];
-		y = test_pyramid_data[i].nrm[1];
-		z = test_pyramid_data[i].nrm[2];
+		x = resources_data[i].nrm[0];
+		y = resources_data[i].nrm[1];
+		z = resources_data[i].nrm[2];
 		temp[i].Normal = glm::vec3(x, y, z);
-		x = test_pyramid_data[i].uvw[0];
-		y = test_pyramid_data[i].uvw[1];
+		x = resources_data[i].uvw[0];
+		y = resources_data[i].uvw[1];
 		temp[i].TexCord = glm::vec2(x, y);
 		temp[i].Color = glm::vec3(0.5f, 0.5f, 0.0f);
 	}
 	std::vector<unsigned int> tempInd;
-	tempInd.resize(sizeof(test_pyramid_indicies) / sizeof(unsigned int));
-	for (int i = 0; i < sizeof(test_pyramid_indicies)/sizeof(unsigned int); i++) {
-		tempInd[i] = test_pyramid_indicies[i];
+	tempInd.resize(sizeof(resources_indicies) / sizeof(unsigned int));
+	for (int i = 0; i < sizeof(resources_indicies)/sizeof(unsigned int); i++) {
+		tempInd[i] = resources_indicies[i];
 	}
 	// load and create a texture 
 	// -------------------------
-	unsigned int brick;
-	glGenTextures(1, &brick);
-	glBindTexture(GL_TEXTURE_2D, brick); //all upcoming GL_TEXTURE_2D ops effect this texture
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	int width, height, numColors;
-	unsigned char* data = stbi_load("Texture/bricks2.jpg", &width, &height, &numColors, 0);
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		std::cout << "Failed to load texture" << std::endl;
-	}
-	stbi_image_free(data);
+	ktxTexture* brickTex;
+	KTX_error_code result;
+	unsigned int texture = 0;
+	GLenum target, glerror;
 
-	Mesh pyramid = Mesh(temp, tempInd, brick);
+	result = ktxTexture_CreateFromNamedFile("Texture/brick.ktx", KTX_TEXTURE_CREATE_NO_FLAGS, &brickTex);
 
-	//Mesh cube = CreateCube();
+	glGenTextures(1, &texture);
+	result = ktxTexture_GLUpload(brickTex, &texture, &target, &glerror);
 
-	//Mesh Plane = generatePlane();
+	Mesh pyramid = Mesh(temp, tempInd, texture);
+
+	Mesh cube = CreateCube();
+
+	Mesh Plane = generatePlane();
+
+	Objects.push_back(pyramid);
+	//Objects.push_back(cube);
+	//Objects.push_back(Plane);
 
 
 	//Camera Shenanigans
@@ -119,38 +120,43 @@ int main() {
 	//Tell gl to put the universe into perspective
 	glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
 
-	view = glm::translate(view, glm::vec3(0.0f, 0.0f,-3.0f));
+	view = glm::translate(view, glm::vec3(0.0f, 0.0f,-5.0f));
 
 	glm::mat4 model = glm::mat4(1.0f);
-	model = glm::rotate_slow(model, glm::radians(15.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	model = glm::scale(model, glm::vec3(.2f, .2f, .2f));
 
 	glEnable(GL_DEPTH_TEST);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-	glm::vec3 objColor = glm::vec3(0.5f, 0.5f, 0.5f);
-	glm::vec3 LightColor = glm::vec3(0.0f, 1.0f, 1.0f);
-	glm::vec3 lightPos = glm::vec3(2.0f, 5.0f, 2.0f);
+	glm::vec3 LightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+	glm::vec3 lightPos = glm::vec3(0.0f, 0.0f, 3.0f);
 
 	while (!glfwWindowShouldClose(window)) {
 		//Get input
 		processInput(window);
-
-
+		float lightz = 5.0f * sin(glfwGetTime());
+		float lightx = 5.0f * cos(glfwGetTime());
+		lightPos = glm::vec3(lightx, 0.0f, lightz);
 		//Perform WRENDER
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+
+
+
 		//basic.use();
-		normal.use();
-		model = glm::rotate_slow(model, glm::radians(0.001f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::rotate(model, glm::radians(0.001f), glm::vec3(0.0f, 1.0f, 0.0f));
 		normal.setMat("model", model);
 		normal.setMat("view", view);
 		normal.setMat("projection", proj);
 		normal.setVec3("lightColor", LightColor);
-		normal.setVec3("lightPos", lightPos);
 		normal.setFloat("Time", glfwGetTime());
-		normal.setVec3("ambiantLightColor", glm::vec3(0.2f,0.2f,0.2f));
-		pyramid.Draw(normal);
+		normal.setVec3("lightPos", lightPos);
+		normal.setVec3("ambiantLightColor", glm::vec3(0.2f, 0.2f, 0.2f));
+		normal.use();
+		for (int i = 0; i < Objects.size(); i++) {
+			Objects[i].Draw(normal);
+		}
 		//floor.Draw(basic);
 		//glBindVertexArray(VAO);
 		////glDrawArrays(GL_TRIANGLES, 0, 3);

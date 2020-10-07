@@ -20,7 +20,7 @@ void main()
     vec3 diffuse = diff * lightColor;
     vec3 NewColor = cos(Time/2) * Color;
     NewColor = NewColor*FragPos*2;
-    vec3 result = diffuse * NewColor;
-    vec4 test = texture(theTex,Tex)*vec4((ambiantLightColor+result),0);
-    FragColor = test;
+    vec3 result = ambiantLightColor+NewColor;
+    vec4 final = texture(theTex,Tex)*vec4(diffuse + result,1.0);
+    FragColor = final;
 }

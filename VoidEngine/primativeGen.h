@@ -17,9 +17,6 @@ public:
 	std::vector<Vertex> vertices;
 	std::vector<unsigned int> index;
 	unsigned int TextureId;
-	Mesh() {
-
-	};
 	Mesh(std::vector<Vertex> verts, std::vector<unsigned int> ind, unsigned int text);
 	virtual void Draw(Shader& shader);
 protected:
@@ -27,6 +24,7 @@ protected:
 	unsigned int VAO, VBO, EBO;
 	void setupMesh();
 };
+
 void Mesh::setupMesh() {
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
@@ -77,14 +75,23 @@ Mesh::Mesh(std::vector<Vertex> verts, std::vector<unsigned int> ind, unsigned in
 
 Mesh CreateCube() {
 	std::vector<Vertex> cube = {
-		{glm::vec3(-0.5f,  0.5f, -0.5f),glm::vec3(0.5f, 0.5f, 0.5f)},
-		{glm::vec3(-0.5f,  0.5f, 0.5f),glm::vec3(0.5f, 0.5f, 0.5f)},
-		{glm::vec3(0.5f,  0.5f, 0.5f),glm::vec3(0.5f, 0.5f, 0.5f)},
-		{glm::vec3(0.5f,  0.5f, -0.5f),glm::vec3(0.5f, 0.5f, 0.5f)},
-		{glm::vec3(-0.5f,  -0.5f, -0.5f),glm::vec3(0.5f, 0.5f, 0.5f)},
-		{glm::vec3(-0.5f,  -0.5f, 0.5f),glm::vec3(0.5f, 0.5f, 0.5f)},
-		{glm::vec3(0.5f,  -0.5f, 0.5f),glm::vec3(0.5f, 0.5f, 0.5f)},
-		{glm::vec3(0.5f,  -0.5f, -0.5f),glm::vec3(0.5f, 0.5f, 0.5f)}
+		//pos								//color							//normal							//TexCord
+	//1
+		{glm::vec3(-0.5f,  0.5f, -0.5f),	glm::vec3(0.5f, 0.5f, 0.5f),	glm::vec3(-0.33f, 0.33f, -0.33f),	glm::vec2(0.5f, 0.5f)},
+	//2
+		{glm::vec3(-0.5f,  0.5f, 0.5f),		glm::vec3(0.5f, 0.5f, 0.5f),	glm::vec3(-0.33f, 0.33f, 0.33f),	glm::vec2(0.5f, 0.5f)},
+	//3
+		{glm::vec3(0.5f,  0.5f, 0.5f),		glm::vec3(0.5f, 0.5f, 0.5f),	glm::vec3(0.33f, 0.33f, 0.33f),		glm::vec2(0.5f, 0.5f)},
+	//4
+		{glm::vec3(0.5f,  0.5f, -0.5f),		glm::vec3(0.5f, 0.5f, 0.5f),	glm::vec3(0.33f, 0.33f, -0.33f),	glm::vec2(0.5f, 0.5f)},
+	//5
+		{glm::vec3(-0.5f,  -0.5f, -0.5f),	glm::vec3(0.5f, 0.5f, 0.5f),	glm::vec3(-0.33f, -0.33f, -0.33f),	glm::vec2(0.5f, 0.5f)},
+	//6
+		{glm::vec3(-0.5f,  -0.5f, 0.5f),	glm::vec3(0.5f, 0.5f, 0.5f),	glm::vec3(-0.33f, -0.33f, 0.33f),	glm::vec2(0.5f, 0.5f)},
+	//7
+		{glm::vec3(0.5f,  -0.5f, 0.5f),		glm::vec3(0.5f, 0.5f, 0.5f),	glm::vec3(0.33f, -0.33f, 0.33f),	glm::vec2(0.5f, 0.5f)},
+	//8
+		{glm::vec3(0.5f,  -0.5f, -0.5f),	glm::vec3(0.5f, 0.5f, 0.5f),	glm::vec3(0.33f, -0.33f, -0.33f),	glm::vec2(0.5f, 0.5f)}
 	};
 	std::vector<unsigned int> index = {
 		//top
@@ -118,15 +125,11 @@ Mesh generatePlane(glm::vec3 Color = glm::vec3(0.5f, 0.5f, 0.5f)) {
 		for (float x = -0.4f; x < 0.5f; x += 0.1f) {
 			Plane[i].Position = glm::vec3(x, 0.0f, z);
 			Plane[i].Color = Color;
+			Plane[i].Normal = glm::vec3(0.0f, 1.0f, 0.0f);
+			Plane[i].TexCord = glm::vec2(0.5f, 0.5f);
 			i++;
 		}
 	}
-	//for (int i = 0; i < 100; i++, z -= 0.1f, x += 0.1f) {
-	//	float y = ((rand() % 20) - 10 / 1000.0f);
-	//	Plane[i].Position = glm::vec3(x, 0.0f, z);
-	//	Plane[i].Color = Color;
-	//	//vertices[i].Normal = glm::vec3(0.0f, 1.0f, 0.0f);
-	//}
 
 	//create index
 	index.resize(486);
