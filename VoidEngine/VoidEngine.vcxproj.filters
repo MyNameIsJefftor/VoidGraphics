@@ -43,16 +43,22 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="BasicVertShader.vs">
+    <None Include="BasicFragShader.frag">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="BasicFragShader.fs">
+    <None Include="BasicVertShader.vert">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="normalShader.vs">
+    <None Include="normalFragShader.frag">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="normalFragShader.fs">
+    <None Include="normalVertShader.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="VertTest.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="fragTest.frag">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

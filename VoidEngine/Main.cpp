@@ -51,8 +51,9 @@ int main() {
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	//ShaderTime
-	Shader basic("BasicVertShader.vs", "BasicFragShader.fs");
-	Shader normal("normalShader.vs", "normalFragShader.fs");
+	//Shader basic("BasicVertShader.vs", "BasicFragShader.fs");
+	Shader normal("normalVertShader.vert", "normalFragShader.frag");
+	Shader TEST("VertTest.vert", "fragTest.frag");
 
 	//Mesh array
 	std::vector<Object> Objects;
@@ -91,16 +92,14 @@ int main() {
 	glGenTextures(1, &texture);
 	result = ktxTexture_GLUpload(brickTex, &texture, &target, &glerror);
 
-	Mesh pyramid = Mesh(temp, tempInd, texture);
-
-	//Mesh cube = CreateCube();
-
-	//Mesh Plane = generatePlane();
-
 	Object cube = { CreateCube(), glm::mat4(1.0f)};
 	Object plane = { generatePlane(3), glm::mat4(1.0f) };
+	Object resource = { Mesh(temp, tempInd, texture), glm::mat4(1.0f) };
+	Object lightCube = { CreateCube(.2, glm::vec3(1,1,1)), glm::mat4(1.0f) };
+	cube.myPos = glm::translate(cube.myPos, glm::vec3(-0.5f, 0.0f, 0.0f));
 	plane.myPos = glm::translate(plane.myPos, glm::vec3(0.0f, -0.5f, 0.0f));
-	//Objects.push_back(pyramid);
+	resource.myPos = glm::scale(resource.myPos, glm::vec3(0.05f, 0.05f, 0.05f));
+	Objects.push_back(resource);
 	Objects.push_back(cube);
 	Objects.push_back(plane);
 
@@ -116,30 +115,27 @@ int main() {
 
 	glm::mat4 view;
 	view = glm::lookAt(
-		glm::vec3(0.0f, 2.0f, 3.0f),
+		glm::vec3(1.0f, 2.0f, -5.0f),
 		glm::vec3(0.0f, 0.0f, 0.0f),
 		glm::vec3(0.0f, 1.0f, 0.0f));
 
 	//Tell gl to put the universe into perspective
 	glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
 
-	view = glm::translate(view, glm::vec3(0.0f, 0.0f,-0.0f));
-
-	glm::mat4 model = glm::mat4(1.0f);
-	//model = glm::scale(model, glm::vec3(.2f, .2f, .2f));
-
 	glEnable(GL_DEPTH_TEST);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
+	glm::vec3 Dirlight = glm::vec3(-0.25f, -1.0f, -0.25f);
 	glm::vec3 LightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-	glm::vec3 lightPos = glm::vec3(0.0f, 0.1f, 0.0f);
+	glm::vec3 lightPos = glm::vec3(0.0f, 1.0f, 0.0f);
 
 	while (!glfwWindowShouldClose(window)) {
 		//Get input
 		processInput(window);
-		/*float lightz = 0.5f * sin(glfwGetTime());
-		float lightx = 0.5f * cos(glfwGetTime());
-		lightPos = glm::vec3(lightx, 0.0f, lightz);*/
+		float lighty = .8f * sin(glfwGetTime());
+		float lightx = .8f * cos(glfwGetTime());
+		lightPos = glm::vec3(lightx, lighty, 0.0f);
+		lightCube.myPos = glm::mat4(1.0);
+		lightCube.myPos = glm::translate(lightCube.myPos, lightPos);
 		//Perform WRENDER
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -148,13 +144,17 @@ int main() {
 
 
 		//basic.use();
+		Dirlight = glm::normalize(-lightPos);
 		normal.setMat("view", view);
 		normal.setMat("projection", proj);
-		normal.setVec3("lightColor", LightColor);
 		normal.setFloat("Time", glfwGetTime());
-		normal.setVec3("lightPos", lightPos);
-		normal.setVec3("ambiantLightColor", glm::vec3(0.2f, 0.2f, 0.2f));
+		normal.setVec3("light.color", glm::vec3(0.4f, 0.4f, 0.4f));
+		normal.setVec3("light.direction", Dirlight);
+		normal.setVec3("light.ambiant", glm::vec3(0.2f,0.2f,0.2f));
 		normal.use();
+		normal.setMat("model", lightCube.myPos);
+
+		lightCube.myMesh.Draw(normal);
 		for (int i = 0; i < Objects.size(); i++) {
 			normal.setMat("model", Objects[i].myPos);
 			Objects[i].myMesh.Draw(normal);

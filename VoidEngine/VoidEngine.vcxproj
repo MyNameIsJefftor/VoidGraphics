@@ -162,10 +162,12 @@
     <ClInclude Include="TestObj\test pyramid.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="BasicFragShader.fs" />
-    <None Include="BasicVertShader.vs" />
-    <None Include="normalFragShader.fs" />
-    <None Include="normalShader.vs" />
+    <None Include="BasicFragShader.frag" />
+    <None Include="BasicVertShader.vert" />
+    <None Include="fragTest.frag" />
+    <None Include="normalFragShader.frag" />
+    <None Include="normalVertShader.vert" />
+    <None Include="VertTest.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

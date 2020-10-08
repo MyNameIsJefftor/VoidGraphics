@@ -73,25 +73,25 @@ Mesh::Mesh(std::vector<Vertex> verts, std::vector<unsigned int> ind, unsigned in
 	setupMesh();
 }
 
-Mesh CreateCube(float scale = 1) {
+Mesh CreateCube(float scale = 1, glm::vec3 color = glm::vec3(0.5f, 0.5f, 0.5f)) {
 	std::vector<Vertex> cube = {
-		//pos										//color							//normal							//TexCord
+		//pos										//color		//normal							//TexCord
 	//1
-		{glm::vec3(-0.5f,  0.5f, -0.5f) * scale,	glm::vec3(0.5f, 0.5f, 0.5f),	glm::vec3(-0.33f, 0.33f, -0.33f),	glm::vec2(0.0f, 0.0f)},
-	//2
-		{glm::vec3(-0.5f,  0.5f, 0.5f) * scale,		glm::vec3(0.5f, 0.5f, 0.5f),	glm::vec3(-0.33f, 0.33f, 0.33f),	glm::vec2(0.0f, 1.0f)},
-	//3
-		{glm::vec3(0.5f,  0.5f, 0.5f) * scale,		glm::vec3(0.5f, 0.5f, 0.5f),	glm::vec3(0.33f, 0.33f, 0.33f),		glm::vec2(1.0f, 1.0f)},
-	//4
-		{glm::vec3(0.5f,  0.5f, -0.5f) * scale,		glm::vec3(0.5f, 0.5f, 0.5f),	glm::vec3(0.33f, 0.33f, -0.33f),	glm::vec2(1.0f, 0.0f)},
-	//5
-		{glm::vec3(-0.5f,  -0.5f, -0.5f) * scale,	glm::vec3(0.5f, 0.5f, 0.5f),	glm::vec3(-0.33f, -0.33f, -0.33f),	glm::vec2(1.0f, 0.0f)},
-	//6
-		{glm::vec3(-0.5f,  -0.5f, 0.5f) * scale,	glm::vec3(0.5f, 0.5f, 0.5f),	glm::vec3(-0.33f, -0.33f, 0.33f),	glm::vec2(1.0f, 1.0f)},
-	//7
-		{glm::vec3(0.5f,  -0.5f, 0.5f) * scale,		glm::vec3(0.5f, 0.5f, 0.5f),	glm::vec3(0.33f, -0.33f, 0.33f),	glm::vec2(0.0f, 1.0f)},
-	//8
-		{glm::vec3(0.5f,  -0.5f, -0.5f) * scale,	glm::vec3(0.5f, 0.5f, 0.5f),	glm::vec3(0.33f, -0.33f, -0.33f),	glm::vec2(0.0f, 0.0f)}
+		{glm::vec3(-0.5f,  0.5f, -0.5f) * scale,	color,		glm::vec3(-0.33f, 0.33f, -0.33f),	glm::vec2(0.0f, 0.0f)},
+	//2												
+		{glm::vec3(-0.5f,  0.5f, 0.5f) * scale,		color,		glm::vec3(-0.33f, 0.33f, 0.33f),	glm::vec2(0.0f, 1.0f)},
+	//3												
+		{glm::vec3(0.5f,  0.5f, 0.5f) * scale,		color,		glm::vec3(0.33f, 0.33f, 0.33f),		glm::vec2(1.0f, 1.0f)},
+	//4												
+		{glm::vec3(0.5f,  0.5f, -0.5f) * scale,		color,		glm::vec3(0.33f, 0.33f, -0.33f),	glm::vec2(1.0f, 0.0f)},
+	//5												
+		{glm::vec3(-0.5f,  -0.5f, -0.5f) * scale,	color,		glm::vec3(-0.33f, -0.33f, -0.33f),	glm::vec2(1.0f, 0.0f)},
+	//6												
+		{glm::vec3(-0.5f,  -0.5f, 0.5f) * scale,	color,		glm::vec3(-0.33f, -0.33f, 0.33f),	glm::vec2(1.0f, 1.0f)},
+	//7												
+		{glm::vec3(0.5f,  -0.5f, 0.5f) * scale,		color,		glm::vec3(0.33f, -0.33f, 0.33f),	glm::vec2(0.0f, 1.0f)},
+	//8												
+		{glm::vec3(0.5f,  -0.5f, -0.5f) * scale,	color,		glm::vec3(0.33f, -0.33f, -0.33f),	glm::vec2(0.0f, 0.0f)}
 	};
 	std::vector<unsigned int> index = {
 		//top
@@ -126,7 +126,7 @@ Mesh generatePlane(float scale = 1, glm::vec3 Color = glm::vec3(0.5f, 0.5f, 0.5f
 			Vertex temp;
 			temp.Position = glm::vec3(x, 0.0f, z)*scale;
 			temp.Color = glm::vec3(0.5f, 0.5f, 0.5f);
-			temp.Normal = glm::vec3(0.0f, -1.0f, 0.0f);
+			temp.Normal = glm::vec3(0.0f, 1.0f, 0.0f);
 			temp.TexCord = glm::vec2(x*2, z*2);
 			Plane.push_back(temp);
 		}
