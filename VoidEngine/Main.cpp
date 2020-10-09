@@ -15,6 +15,7 @@
 #include "ShaderReader.h"
 #include "Mesh.h"
 #include "Object.h"
+#include "lights.h"
 
 //header obj
 #include "TestObj/resources.h"
@@ -55,8 +56,10 @@ int main() {
 	Shader normal("normalVertShader.vert", "normalFragShader.frag");
 	Shader TEST("VertTest.vert", "fragTest.frag");
 
-	//Mesh array
+	//Arrays
 	std::vector<Object> Objects;
+	std::vector<dirLight> dirLights;
+	std::vector<pointLight> pointLights;
 
 	//Convert obj from header to my format
 	std::vector<Vertex> temp;
@@ -124,18 +127,37 @@ int main() {
 
 	glEnable(GL_DEPTH_TEST);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glm::vec3 Dirlight = glm::vec3(-0.25f, -1.0f, -0.25f);
 	glm::vec3 LightColor = glm::vec3(1.0f, 1.0f, 1.0f);
 	glm::vec3 lightPos = glm::vec3(0.0f, 1.0f, 0.0f);
 
+	//create lights
+	dirLight sun = {
+		glm::normalize(glm::vec3(-0.25f, -1.0f, -0.25f)),
+		glm::vec3(0.3f,0.2f,0.1f)
+	};
+	dirLight moon = {
+		glm::normalize(glm::vec3(0.25f, 1.0f, 0.25f)),
+		glm::vec3(0.2f,0.3f,0.4f)
+	};
+	dirLights.push_back(sun);
+	dirLights.push_back(moon);
+
+	pointLight test = {
+		glm::vec3(-1.0f, 0.0f, 0.0f),
+		glm::vec3(0.6f,0.0f,0.6f),
+		1,
+		0.7,
+		1.8
+	};
+	pointLights.push_back(test);
 	while (!glfwWindowShouldClose(window)) {
 		//Get input
 		processInput(window);
-		float lighty = .8f * sin(glfwGetTime());
-		float lightx = .8f * cos(glfwGetTime());
-		lightPos = glm::vec3(lightx, lighty, 0.0f);
+		//float lightz = .8f * sin(glfwGetTime());
+		float lightx = 3 * cos(glfwGetTime());
+		pointLights[0].position = glm::vec3(lightx, 0.0f, 0.0f);
 		lightCube.myPos = glm::mat4(1.0);
-		lightCube.myPos = glm::translate(lightCube.myPos, lightPos);
+		lightCube.myPos = glm::translate(lightCube.myPos, pointLights[0].position);
 		//Perform WRENDER
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -144,13 +166,40 @@ int main() {
 
 
 		//basic.use();
-		Dirlight = glm::normalize(-lightPos);
+		//update the lights
+		normal.setInt("numDirLights", dirLights.size());
+		for (int i = 0; i < dirLights.size(); i++) {
+			char uniform[64];
+
+			sprintf_s(uniform, "dirlight[%i].direction", i);
+			normal.setVec3(uniform, dirLights[i].direction);
+
+			sprintf_s(uniform, "dirlight[%i].color", i);
+			normal.setVec3(uniform, dirLights[i].color);
+		}
+		normal.setInt("numPointLights", pointLights.size());
+		for (int i = 0; i < pointLights.size(); i++) {
+			char uniform[64];
+
+			sprintf_s(uniform, "pointlight[%i].pos", i);
+			normal.setVec3(uniform, pointLights[i].position);
+
+			sprintf_s(uniform, "pointlight[%i].color", i);
+			normal.setVec3(uniform, pointLights[i].color);
+
+			sprintf_s(uniform, "pointlight[%i].constant", i);
+			normal.setFloat(uniform, pointLights[i].constant);
+
+			sprintf_s(uniform, "pointlight[%i].linear", i);
+			normal.setFloat(uniform, pointLights[i].linear);
+
+			sprintf_s(uniform, "pointlight[%i].quadratic", i);
+			normal.setFloat(uniform, pointLights[i].quadratic);
+		}
 		normal.setMat("view", view);
 		normal.setMat("projection", proj);
 		normal.setFloat("Time", glfwGetTime());
-		normal.setVec3("light.color", glm::vec3(0.4f, 0.4f, 0.4f));
-		normal.setVec3("light.direction", Dirlight);
-		normal.setVec3("light.ambiant", glm::vec3(0.2f,0.2f,0.2f));
+		normal.setVec3("ambiant", glm::vec3(0.2f,0.2f,0.2f));
 		normal.use();
 		normal.setMat("model", lightCube.myPos);
 

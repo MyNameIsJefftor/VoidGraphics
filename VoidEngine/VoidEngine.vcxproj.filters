@@ -41,6 +41,9 @@
     <ClInclude Include="Object.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="lights.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="BasicFragShader.frag">
