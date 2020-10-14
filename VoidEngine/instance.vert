@@ -3,6 +3,7 @@ layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aColor;
 layout (location = 2) in vec3 aNormal;
 layout (location = 3) in vec2 aTex;
+layout (location = 4) in mat4 insMat;
 
 out SHADER_OUT {
 vec3 Color;
@@ -17,9 +18,9 @@ uniform mat4 projection;
 
 void main()
 {
-    gl_Position = projection * view * model * vec4(aPos, 1.0f);
-    ShaderOut.FragPos = vec3(model*vec4(aPos,1.0f));
-    ShaderOut.Normal = mat3(transpose(inverse(model)))*aNormal;
+    gl_Position = projection * view * model * insMat * vec4(aPos, 1.0f);
     ShaderOut.Color = aColor;
-    ShaderOut.Tex = vec2(aTex.x, aTex.y);
+    ShaderOut.Normal = aNormal;
+    ShaderOut.Tex = aTex;
+    ShaderOut.FragPos = vec3(model * insMat *vec4(aPos,1.0f));
 } 

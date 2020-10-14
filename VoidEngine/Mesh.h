@@ -21,7 +21,6 @@ public:
 	Mesh(std::vector<Vertex> verts, std::vector<unsigned int> ind, std::vector<unsigned int> text);
 	void Draw(Shader& shader);
 	void DrawnUnIndex(Shader& shader);
-protected:
 	//Render Data
 	unsigned int VAO, VBO, EBO;
 	void setupMesh();

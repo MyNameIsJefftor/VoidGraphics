@@ -55,7 +55,9 @@ int main() {
 	//Shader basic("BasicVertShader.vs", "BasicFragShader.fs");
 	Shader normal("normalVertShader.vert", "normalFragShader.frag");
 	//Shader GeomTest("VertTest.vert", "fragTest.frag", "test.geom");
-	Shader Flag("wave.vert", "normalFragShader.frag", "VertsToTriangles.geom");
+	Shader Flag("wave.vert", "normalFragShader.frag");
+	Shader Instance("instance.vert", "normalFragShader.frag");
+
 	//Arrays
 	std::vector<Object> Objects;
 	std::vector<dirLight> dirLights;
@@ -107,7 +109,7 @@ int main() {
 	Object cube = { CreateCube(resourceTex), glm::mat4(1.0f)};
 	Object plane = { generatePlane(resourceTex,3), glm::mat4(1.0f) };
 	Object resource = { Mesh(headerImport, tempInd, resourceTex), glm::mat4(1.0f) };
-	cube.myPos = glm::translate(cube.myPos, glm::vec3(-0.5f, 0.0f, 0.0f));
+	//cube.myPos = glm::translate(cube.myPos, glm::vec3(-0.5f, 0.0f, 0.0f));
 	plane.myPos = glm::translate(plane.myPos, glm::vec3(0.0f, -0.5f, 0.0f));
 	resource.myPos = glm::scale(resource.myPos, glm::vec3(0.05f, 0.05f, 0.05f));
 	Objects.push_back(resource);
@@ -154,7 +156,7 @@ int main() {
 
 	pointLight red = {
 		glm::vec3(-1.0f, 0.0f, 0.0f),
-		glm::vec3(0.0f,0.0f,0.0f),
+		glm::vec3(0.1f,0.0f,0.0f),
 		1.0f,
 		0.7f,
 		1.8f,
@@ -179,6 +181,8 @@ int main() {
 	pointLights.push_back(red);
 	pointLights.push_back(green);
 	pointLights.push_back(blue);
+
+	glm::mat4* instanceTest = genRandomPos(glm::vec3(0.0f, 1.0f, 0.0f), 1.0f, 100, 0.0625f);
 
 	while (!glfwWindowShouldClose(window)) {
 		//Get input
@@ -293,6 +297,51 @@ int main() {
 		Flag.setMat("model", plane.myPos);
 		plane.myMesh.DrawnUnIndex(Flag);
 
+		Instance.use();
+		Instance.setInt("numDirLights", dirLights.size());
+		for (int i = 0; i < dirLights.size(); i++) {
+			char uniform[64];
+
+			sprintf_s(uniform, "dirlight[%i].direction", i);
+			Flag.setVec3(uniform, dirLights[i].direction);
+
+			sprintf_s(uniform, "dirlight[%i].color", i);
+			Flag.setVec3(uniform, dirLights[i].color);
+
+			sprintf_s(uniform, "dirlight[%i].specular", i);
+			Flag.setVec3(uniform, dirLights[i].specular);
+		}
+		Instance.setInt("numPointLights", pointLights.size());
+		for (int i = 0; i < pointLights.size(); i++) {
+			char uniform[64];
+
+			sprintf_s(uniform, "pointlight[%i].pos", i);
+			Instance.setVec3(uniform, pointLights[i].position);
+
+			sprintf_s(uniform, "pointlight[%i].color", i);
+			Instance.setVec3(uniform, pointLights[i].color);
+
+			sprintf_s(uniform, "pointlight[%i].constant", i);
+			Instance.setFloat(uniform, pointLights[i].constant);
+
+			sprintf_s(uniform, "pointlight[%i].linear", i);
+			Instance.setFloat(uniform, pointLights[i].linear);
+
+			sprintf_s(uniform, "pointlight[%i].quadratic", i);
+			Instance.setFloat(uniform, pointLights[i].quadratic);
+
+			sprintf_s(uniform, "pointlight[%i].specular", i);
+			Instance.setVec3(uniform, pointLights[i].specular);
+		}
+		Instance.setMat("view", view);
+		Instance.setMat("projection", proj);
+		Instance.setFloat("Time", (float)glfwGetTime());
+		Instance.setVec3("ambiant", glm::vec3(0.2f, 0.2f, 0.2f));
+		Instance.setVec3("camPos", glm::vec3(1.0f, 2.0f, -5.0f));
+		Instance.setMat("view", view);
+		Instance.setMat("projection", proj);
+		Instance.setMat("model", plane.myPos);
+		drawInstancedObj(instanceTest, cube);
 		//Swap the buffs. Check for events.
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -314,13 +363,4 @@ void processInput(GLFWwindow* window) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-}
-
-void renderTriangle() {
-	unsigned int VBO; //Vertex Buffer Object
-	glGenBuffers(1, &VBO); //Give the object an id
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);//bind VBO to an array buffer
-
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(tVertices), tVertices, GL_STATIC_DRAW);
 }

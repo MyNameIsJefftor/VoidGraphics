@@ -74,9 +74,6 @@ void main()
     NewColor = mix(NewColor, vec3(0.1,0.1,0.3),sin((Time+ShaderIn.FragPos.z)/2));
     vec4 final;
     for(int i = 0; i < numDirLights; i ++){
-        if(dirFinal[i] == vec3(0,0,0)){
-            continue;
-        }
         final += vec4((dirFinal[i]),1.0);
     }
     for(int i = 0; i < numPointLights; i ++){

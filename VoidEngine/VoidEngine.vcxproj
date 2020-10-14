@@ -165,6 +165,7 @@
   <ItemGroup>
     <None Include="BasicFragShader.frag" />
     <None Include="BasicVertShader.vert" />
+    <None Include="instance.vert" />
     <None Include="normalFragShader.frag" />
     <None Include="GEOLAYOUT.geom" />
     <None Include="normalVertShader.vert" />

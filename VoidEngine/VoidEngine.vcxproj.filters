@@ -76,5 +76,8 @@
     <None Include="VertsToTriangles.geom">
       <Filter>Shaders\Geom</Filter>
     </None>
+    <None Include="instance.vert">
+      <Filter>Shaders\Vert</Filter>
+    </None>
   </ItemGroup>
 </Project>

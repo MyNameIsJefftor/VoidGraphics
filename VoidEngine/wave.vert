@@ -14,7 +14,6 @@ vec2 Tex;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
-uniform bool UsePoint;
 uniform float Time;
 
 void main()
