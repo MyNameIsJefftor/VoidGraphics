@@ -55,7 +55,7 @@ int main() {
 	//Shader basic("BasicVertShader.vs", "BasicFragShader.fs");
 	Shader normal("normalVertShader.vert", "normalFragShader.frag");
 	//Shader GeomTest("VertTest.vert", "fragTest.frag", "test.geom");
-	Shader Flag("wave.vert", "normalFragShader.frag");
+	Shader Flag("wave.vert", "normalFragShader.frag", "VertsToTriangles.geom");
 	Shader Instance("instance.vert", "normalFragShader.frag");
 
 	//Arrays
@@ -110,12 +110,14 @@ int main() {
 	Object plane = { generatePlane(resourceTex,3), glm::mat4(1.0f) };
 	Object resource = { Mesh(headerImport, tempInd, resourceTex), glm::mat4(1.0f) };
 	//cube.myPos = glm::translate(cube.myPos, glm::vec3(-0.5f, 0.0f, 0.0f));
-	plane.myPos = glm::translate(plane.myPos, glm::vec3(0.0f, -0.5f, 0.0f));
+	plane.myPos = glm::translate(plane.myPos, glm::vec3(0.0f, -1.0f, 0.0f));
 	resource.myPos = glm::scale(resource.myPos, glm::vec3(0.05f, 0.05f, 0.05f));
 	Objects.push_back(resource);
 	Objects.push_back(cube);
-	//Objects.push_back(plane);
 
+	Object RCube { CreateCube(resourceTex,0.125f), glm::mat4(1.0f) };
+	Object GCube { CreateCube(resourceTex,0.125f), glm::mat4(1.0f) };
+	Object BCube { CreateCube(resourceTex,0.125f), glm::mat4(1.0f) };
 
 	//Camera Shenanigans
 	//this is what look at does
@@ -143,7 +145,7 @@ int main() {
 	//create lights
 	dirLight sun = {
 		glm::normalize(glm::vec3(-0.25f, -1.0f, -0.25f)),
-		glm::vec3(0.3f,0.2f,0.1f),
+		glm::vec3(0.8f,0.4f,0.2f),
 		glm::vec3(0.3f,0.2f,0.1f)
 	};
 	dirLight moon = {
@@ -187,11 +189,16 @@ int main() {
 	while (!glfwWindowShouldClose(window)) {
 		//Get input
 		processInput(window);
-		//float lightz = .8f * sin(glfwGetTime());
-		float pointlightx = 3.0f * cos((float)glfwGetTime());
-		pointLights[0].position = glm::vec3(pointlightx, 0.0f, 0.0f);
-		pointLights[1].position = glm::vec3(0.0f, 0.0f, pointlightx);
-		pointLights[2].position = glm::vec3(0.0f, pointlightx, 0.0f);
+		float sinlightz = 1.0f * sin((float)glfwGetTime());
+		float sinlighty = 1.0f * sin((float)glfwGetTime());
+		float coslighty = 1.0f * cos((float)glfwGetTime());
+		float coslightx = 1.0f * cos((float)glfwGetTime());
+		pointLights[0].position = glm::vec3(coslightx, sinlighty, 0.0f);
+		pointLights[1].position = glm::vec3(coslightx, 0.0f, sinlightz);
+		pointLights[2].position = glm::vec3(0.0f, coslighty, sinlightz);
+		RCube.myPos = glm::translate(glm::mat4(1.0f), pointLights[0].position);
+		GCube.myPos = glm::translate(glm::mat4(1.0f), pointLights[1].position);
+		BCube.myPos = glm::translate(glm::mat4(1.0f), pointLights[2].position);
 		//Perform WRENDER
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -247,10 +254,15 @@ int main() {
 			normal.setMat("model", Objects[i].myPos);
 			Objects[i].myMesh.Draw(normal);
 		}
-		//floor.Draw(basic);
-		//glBindVertexArray(VAO);
-		////glDrawArrays(GL_TRIANGLES, 0, 3);
-		//glDrawElements(GL_TRIANGLES, 1000, GL_UNSIGNED_INT, 0);
+		normal.setMat("model", RCube.myPos);
+		RCube.myMesh.Draw(normal);
+
+		normal.setMat("model", GCube.myPos);
+		GCube.myMesh.Draw(normal);
+
+		normal.setMat("model", BCube.myPos);
+		BCube.myMesh.Draw(normal);
+
 		Flag.use();
 		Flag.setInt("numDirLights", dirLights.size());
 		for (int i = 0; i < dirLights.size(); i++) {
