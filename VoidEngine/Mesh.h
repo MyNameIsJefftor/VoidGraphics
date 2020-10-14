@@ -111,7 +111,7 @@ void Mesh::DrawnUnIndex(Shader& shader) {
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindVertexArray(VAO);
-	glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+	glDrawElements(GL_TRIANGLES, index.size(), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 }
 

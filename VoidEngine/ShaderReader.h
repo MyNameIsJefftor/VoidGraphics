@@ -99,7 +99,7 @@ Shader::Shader(const char* vertexPath, const char* fragPath, const char* geoPath
     glGetShaderiv(geom, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(geom, 512, NULL, infoLog);
-        std::cout << "ERR : Shader < Frag < CompFail\n" << infoLog << std::endl;
+        std::cout << "ERR : Shader < geom < CompFail\n" << infoLog << std::endl;
     };
 
     ID = glCreateProgram();

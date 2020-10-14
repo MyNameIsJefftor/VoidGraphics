@@ -1,7 +1,1 @@
-﻿  Main.cpp
-C:\Users\admin\Desktop\Progamming\pp4\Project\VoidGraphics\VoidEngine\Mesh.h(86,63): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
-C:\Users\admin\Desktop\Progamming\pp4\Project\VoidGraphics\VoidEngine\Mesh.h(114,47): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
-C:\Users\admin\Desktop\Progamming\pp4\Project\VoidGraphics\VoidEngine\Main.cpp(200,49): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\admin\Desktop\Progamming\pp4\Project\VoidGraphics\VoidEngine\Main.cpp(213,53): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-LINK : warning LNK4098: defaultlib 'MSVCRT' conflicts with use of other libs; use /NODEFAULTLIB:library
-  VoidEngine.vcxproj -> C:\Users\admin\Desktop\Progamming\pp4\Project\VoidGraphics\VoidEngine\x64\Debug\VoidEngine.exe
+﻿  VoidEngine.vcxproj -> C:\Users\admin\Desktop\Progamming\pp4\Project\VoidGraphics\VoidEngine\x64\Debug\VoidEngine.exe

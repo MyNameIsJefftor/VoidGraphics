@@ -55,17 +55,11 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="fragTest.frag">
-      <Filter>Shaders\Frag</Filter>
-    </None>
     <None Include="BasicFragShader.frag">
       <Filter>Shaders\Frag</Filter>
     </None>
     <None Include="normalFragShader.frag">
       <Filter>Shaders\Frag</Filter>
-    </None>
-    <None Include="VertTest.vert">
-      <Filter>Shaders\Vert</Filter>
     </None>
     <None Include="BasicVertShader.vert">
       <Filter>Shaders\Vert</Filter>
@@ -73,13 +67,22 @@
     <None Include="normalVertShader.vert">
       <Filter>Shaders\Vert</Filter>
     </None>
-    <None Include="test.geom">
-      <Filter>Shaders\Geom</Filter>
-    </None>
     <None Include="PassthroughGeo.geom">
       <Filter>Shaders\Geom</Filter>
     </None>
-    <None Include="NormalGeo.geom">
+    <None Include="moreGeo.frag">
+      <Filter>Shaders\Frag</Filter>
+    </None>
+    <None Include="moreGeo.geom">
+      <Filter>Shaders\Geom</Filter>
+    </None>
+    <None Include="moreGeo.vert">
+      <Filter>Shaders\Vert</Filter>
+    </None>
+    <None Include="wave.vert">
+      <Filter>Shaders\Vert</Filter>
+    </None>
+    <None Include="GEOLAYOUT.geom">
       <Filter>Shaders\Geom</Filter>
     </None>
   </ItemGroup>

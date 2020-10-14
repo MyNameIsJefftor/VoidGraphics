@@ -1,10 +1,12 @@
 #version 330 core
 flat out vec4 FragColor; 
 
-in vec3 Normal;
-in vec3 FragPos;
-in vec3 Color;
-in vec2 Tex;
+in SHADER_OUT{
+vec3 Color;
+vec3 Normal;
+vec3 FragPos;
+vec2 Tex;
+} ShaderIn;
 
 struct mat{
     sampler2D baseTex;
@@ -40,36 +42,36 @@ uniform vec3 camPos;
 
 void main()
 {
-    vec3 viewDir = normalize(camPos - FragPos);
+    vec3 viewDir = normalize(camPos - ShaderIn.FragPos);
     vec3 dirFinal[maxDirLights];
     vec3 pointFinal[maxPointLights];
-    vec3 norm = normalize(Normal);
+    vec3 norm = normalize(ShaderIn.Normal);
 
     //setup dirlights
     for(int i = 0; i < maxDirLights; i++){
         vec3 lightDir = normalize(-dirlight[i].direction);
         vec3 reflectdir = reflect(-lightDir, norm);
         float spec = pow(max(dot(viewDir, reflectdir),0.0), 32);
-        vec3 specular = dirlight[i].specular * spec * vec3(texture(material.specular, Tex));
-        vec3 diff = max(dot(norm, lightDir), 0.0) * dirlight[i].color* vec3(texture(material.baseTex, Tex));
+        vec3 specular = dirlight[i].specular * spec * vec3(texture(material.specular, ShaderIn.Tex));
+        vec3 diff = max(dot(norm, lightDir), 0.0) * dirlight[i].color* vec3(texture(material.baseTex, ShaderIn.Tex));
         dirFinal[i] =  diff + specular;
     }
 
     //setup pointlights
     for(int i = 0; i<maxPointLights; i ++){
-        vec3 lightDir = normalize(pointlight[i].pos - FragPos);
+        vec3 lightDir = normalize(pointlight[i].pos - ShaderIn.FragPos);
         vec3 reflectdir = reflect(-lightDir, norm);
         float spec = pow(max(dot(viewDir, reflectdir),0.0), 32);
-        vec3 specular = pointlight[i].specular * vec3(texture(material.specular, Tex)) * spec;
-        vec3 diff = max(dot(norm, lightDir),0.0) * pointlight[i].color *vec3(texture(material.baseTex, Tex));
-        float dis = length(pointlight[i].pos-FragPos);
+        vec3 specular = pointlight[i].specular * vec3(texture(material.specular, ShaderIn.Tex)) * spec;
+        vec3 diff = max(dot(norm, lightDir),0.0) * pointlight[i].color *vec3(texture(material.baseTex, ShaderIn.Tex));
+        float dis = length(pointlight[i].pos-ShaderIn.FragPos);
         float atten = 1.0 / (pointlight[i].constant + pointlight[i].linear * dis + pointlight[i].quadratic * (dis * dis));
         diff *= atten;
         specular *= atten;
         pointFinal[i] = diff + specular;
     }
-    vec3 NewColor = vec3(Color.x - FragPos.x, Color.y - FragPos.y, Color.z - FragPos.z);
-    NewColor = mix(NewColor, vec3(0.1,0.1,0.3),sin((Time+FragPos.z)/2));
+    vec3 NewColor = vec3(ShaderIn.Color.x - ShaderIn.FragPos.x, ShaderIn.Color.y - ShaderIn.FragPos.y, ShaderIn.Color.z - ShaderIn.FragPos.z);
+    NewColor = mix(NewColor, vec3(0.1,0.1,0.3),sin((Time+ShaderIn.FragPos.z)/2));
     vec4 final;
     for(int i = 0; i < numDirLights; i ++){
         if(dirFinal[i] == vec3(0,0,0)){

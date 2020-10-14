@@ -54,7 +54,8 @@ int main() {
 	//ShaderTime
 	//Shader basic("BasicVertShader.vs", "BasicFragShader.fs");
 	Shader normal("normalVertShader.vert", "normalFragShader.frag");
-	Shader GeomTest("BasicVertShader.vert", "BasicFragShader.frag", "test.geom");
+	//Shader GeomTest("VertTest.vert", "fragTest.frag", "test.geom");
+	Shader Flag("wave.vert", "normalFragShader.frag");
 	//Arrays
 	std::vector<Object> Objects;
 	std::vector<dirLight> dirLights;
@@ -246,8 +247,51 @@ int main() {
 		//glBindVertexArray(VAO);
 		////glDrawArrays(GL_TRIANGLES, 0, 3);
 		//glDrawElements(GL_TRIANGLES, 1000, GL_UNSIGNED_INT, 0);
-		GeomTest.use();
-		plane.myMesh.Draw(GeomTest);
+		Flag.use();
+		Flag.setInt("numDirLights", dirLights.size());
+		for (int i = 0; i < dirLights.size(); i++) {
+			char uniform[64];
+
+			sprintf_s(uniform, "dirlight[%i].direction", i);
+			Flag.setVec3(uniform, dirLights[i].direction);
+
+			sprintf_s(uniform, "dirlight[%i].color", i);
+			Flag.setVec3(uniform, dirLights[i].color);
+
+			sprintf_s(uniform, "dirlight[%i].specular", i);
+			Flag.setVec3(uniform, dirLights[i].specular);
+		}
+		Flag.setInt("numPointLights", pointLights.size());
+		for (int i = 0; i < pointLights.size(); i++) {
+			char uniform[64];
+
+			sprintf_s(uniform, "pointlight[%i].pos", i);
+			Flag.setVec3(uniform, pointLights[i].position);
+
+			sprintf_s(uniform, "pointlight[%i].color", i);
+			Flag.setVec3(uniform, pointLights[i].color);
+
+			sprintf_s(uniform, "pointlight[%i].constant", i);
+			Flag.setFloat(uniform, pointLights[i].constant);
+
+			sprintf_s(uniform, "pointlight[%i].linear", i);
+			Flag.setFloat(uniform, pointLights[i].linear);
+
+			sprintf_s(uniform, "pointlight[%i].quadratic", i);
+			Flag.setFloat(uniform, pointLights[i].quadratic);
+
+			sprintf_s(uniform, "pointlight[%i].specular", i);
+			Flag.setVec3(uniform, pointLights[i].specular);
+		}
+		Flag.setMat("view", view);
+		Flag.setMat("projection", proj);
+		Flag.setFloat("Time", (float)glfwGetTime());
+		Flag.setVec3("ambiant", glm::vec3(0.2f, 0.2f, 0.2f));
+		Flag.setVec3("camPos", glm::vec3(1.0f, 2.0f, -5.0f));
+		Flag.setMat("view", view);
+		Flag.setMat("projection", proj);
+		Flag.setMat("model", plane.myPos);
+		plane.myMesh.DrawnUnIndex(Flag);
 
 		//Swap the buffs. Check for events.
 		glfwSwapBuffers(window);
