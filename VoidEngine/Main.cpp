@@ -54,29 +54,29 @@ int main() {
 	//ShaderTime
 	//Shader basic("BasicVertShader.vs", "BasicFragShader.fs");
 	Shader normal("normalVertShader.vert", "normalFragShader.frag");
-	Shader TEST("VertTest.vert", "fragTest.frag");
-
+	Shader GeomTest("BasicVertShader.vert", "BasicFragShader.frag", "test.geom");
 	//Arrays
 	std::vector<Object> Objects;
 	std::vector<dirLight> dirLights;
 	std::vector<pointLight> pointLights;
 
 	//Convert obj from header to my format
-	std::vector<Vertex> temp;
-	temp.resize(sizeof(resources_data)/sizeof(OBJ_VERT));
+	
+	std::vector<Vertex> headerImport;
+	headerImport.resize(sizeof(resources_data)/sizeof(OBJ_VERT));
 	for (int i = 0; i < sizeof(resources_data) / sizeof(OBJ_VERT); i++) {
 		float x = resources_data[i].pos[0];
 		float y = resources_data[i].pos[1];
 		float z = resources_data[i].pos[2];
-		temp[i].Position = glm::vec3(x,y,z);
+		headerImport[i].Position = glm::vec3(x,y,z);
 		x = resources_data[i].nrm[0];
 		y = resources_data[i].nrm[1];
 		z = resources_data[i].nrm[2];
-		temp[i].Normal = glm::vec3(x, y, z);
+		headerImport[i].Normal = glm::vec3(x, y, z);
 		x = resources_data[i].uvw[0];
 		y = resources_data[i].uvw[1];
-		temp[i].TexCord = glm::vec2(x, y);
-		temp[i].Color = glm::vec3(0.5f, 0.5f, 0.0f);
+		headerImport[i].TexCord = glm::vec2(x, y);
+		headerImport[i].Color = glm::vec3(0.5f, 0.5f, 0.0f);
 	}
 	std::vector<unsigned int> tempInd;
 	tempInd.resize(sizeof(resources_indicies) / sizeof(unsigned int));
@@ -85,32 +85,39 @@ int main() {
 	}
 	// load and create a texture 
 	// -------------------------
-	ktxTexture* brickTex;
+	std::vector<unsigned int> resourceTex;
+	ktxTexture* resourceTexDiff;
+	ktxTexture* resourceTexSpec;
 	KTX_error_code result;
-	unsigned int texture = 0;
+	unsigned int resourcediffId = 0, resourcespecId = 0;
 	GLenum target, glerror;
 
-	result = ktxTexture_CreateFromNamedFile("Texture/brick.ktx", KTX_TEXTURE_CREATE_NO_FLAGS, &brickTex);
+	result = ktxTexture_CreateFromNamedFile("Texture/resource.ktx", KTX_TEXTURE_CREATE_NO_FLAGS, &resourceTexDiff);
+	glGenTextures(1, &resourcediffId);
+	result = ktxTexture_GLUpload(resourceTexDiff, &resourcediffId, &target, &glerror);
+	resourceTex.push_back(resourcediffId);
 
-	glGenTextures(1, &texture);
-	result = ktxTexture_GLUpload(brickTex, &texture, &target, &glerror);
+	result = ktxTexture_CreateFromNamedFile("Texture/resource_spec.ktx", KTX_TEXTURE_CREATE_NO_FLAGS, &resourceTexSpec);
+	glGenTextures(1, &resourcespecId);
+	result = ktxTexture_GLUpload(resourceTexSpec, &resourcespecId, &target, &glerror);
+	resourceTex.push_back(resourcespecId);
 
-	Object cube = { CreateCube(), glm::mat4(1.0f)};
-	Object plane = { generatePlane(3), glm::mat4(1.0f) };
-	Object resource = { Mesh(temp, tempInd, texture), glm::mat4(1.0f) };
-	Object lightCube = { CreateCube(.2, glm::vec3(1,1,1)), glm::mat4(1.0f) };
+
+	Object cube = { CreateCube(resourceTex), glm::mat4(1.0f)};
+	Object plane = { generatePlane(resourceTex,3), glm::mat4(1.0f) };
+	Object resource = { Mesh(headerImport, tempInd, resourceTex), glm::mat4(1.0f) };
 	cube.myPos = glm::translate(cube.myPos, glm::vec3(-0.5f, 0.0f, 0.0f));
 	plane.myPos = glm::translate(plane.myPos, glm::vec3(0.0f, -0.5f, 0.0f));
 	resource.myPos = glm::scale(resource.myPos, glm::vec3(0.05f, 0.05f, 0.05f));
 	Objects.push_back(resource);
 	Objects.push_back(cube);
-	Objects.push_back(plane);
+	//Objects.push_back(plane);
 
 
 	//Camera Shenanigans
 	//this is what look at does
-	/*glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-	glm::vec3 cameraTar = glm::vec3(0.0f, 0.0f, 0.0f);
+	glm::vec3 cameraPos = glm::vec3(1.0f, 2.0f, -5.0f);
+	/*glm::vec3 cameraTar = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::vec3 cameraDir = glm::normalize(cameraPos - cameraTar);
 	glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
 	glm::vec3 cameraRig = glm::normalize(glm::cross(up, cameraDir));
@@ -118,7 +125,7 @@ int main() {
 
 	glm::mat4 view;
 	view = glm::lookAt(
-		glm::vec3(1.0f, 2.0f, -5.0f),
+		cameraPos,
 		glm::vec3(0.0f, 0.0f, 0.0f),
 		glm::vec3(0.0f, 1.0f, 0.0f));
 
@@ -133,31 +140,53 @@ int main() {
 	//create lights
 	dirLight sun = {
 		glm::normalize(glm::vec3(-0.25f, -1.0f, -0.25f)),
+		glm::vec3(0.3f,0.2f,0.1f),
 		glm::vec3(0.3f,0.2f,0.1f)
 	};
 	dirLight moon = {
 		glm::normalize(glm::vec3(0.25f, 1.0f, 0.25f)),
+		glm::vec3(0.2f,0.3f,0.4f),
 		glm::vec3(0.2f,0.3f,0.4f)
 	};
 	dirLights.push_back(sun);
 	dirLights.push_back(moon);
 
-	pointLight test = {
+	pointLight red = {
 		glm::vec3(-1.0f, 0.0f, 0.0f),
-		glm::vec3(0.6f,0.0f,0.6f),
-		1,
-		0.7,
-		1.8
+		glm::vec3(0.0f,0.0f,0.0f),
+		1.0f,
+		0.7f,
+		1.8f,
+		glm::vec3(1.0f,0.0f,0.0f)
 	};
-	pointLights.push_back(test);
+	pointLight green = {
+		glm::vec3(0.0f, 1.0f, 0.0f),
+		glm::vec3(0.0f,0.1f,0.0f),
+		1.0f,
+		0.7f,
+		1.8f,
+		glm::vec3(0.0f,1.0f,0.0f)
+	};
+	pointLight blue = {
+		glm::vec3(0.0f, 0.0f, 0.0f),
+		glm::vec3(0.0f,0.0f,1.0f),
+		1.0f,
+		0.7f,
+		1.8f,
+		glm::vec3(0.0f,0.0f,1.0f)
+	};
+	pointLights.push_back(red);
+	pointLights.push_back(green);
+	pointLights.push_back(blue);
+
 	while (!glfwWindowShouldClose(window)) {
 		//Get input
 		processInput(window);
 		//float lightz = .8f * sin(glfwGetTime());
-		float lightx = 3 * cos(glfwGetTime());
-		pointLights[0].position = glm::vec3(lightx, 0.0f, 0.0f);
-		lightCube.myPos = glm::mat4(1.0);
-		lightCube.myPos = glm::translate(lightCube.myPos, pointLights[0].position);
+		float pointlightx = 3.0f * cos((float)glfwGetTime());
+		pointLights[0].position = glm::vec3(pointlightx, 0.0f, 0.0f);
+		pointLights[1].position = glm::vec3(0.0f, 0.0f, pointlightx);
+		pointLights[2].position = glm::vec3(0.0f, pointlightx, 0.0f);
 		//Perform WRENDER
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -167,6 +196,7 @@ int main() {
 
 		//basic.use();
 		//update the lights
+		normal.use();
 		normal.setInt("numDirLights", dirLights.size());
 		for (int i = 0; i < dirLights.size(); i++) {
 			char uniform[64];
@@ -176,6 +206,9 @@ int main() {
 
 			sprintf_s(uniform, "dirlight[%i].color", i);
 			normal.setVec3(uniform, dirLights[i].color);
+
+			sprintf_s(uniform, "dirlight[%i].specular", i);
+			normal.setVec3(uniform, dirLights[i].specular);
 		}
 		normal.setInt("numPointLights", pointLights.size());
 		for (int i = 0; i < pointLights.size(); i++) {
@@ -195,15 +228,16 @@ int main() {
 
 			sprintf_s(uniform, "pointlight[%i].quadratic", i);
 			normal.setFloat(uniform, pointLights[i].quadratic);
+
+			sprintf_s(uniform, "pointlight[%i].specular", i);
+			normal.setVec3(uniform, pointLights[i].specular);
 		}
 		normal.setMat("view", view);
 		normal.setMat("projection", proj);
-		normal.setFloat("Time", glfwGetTime());
+		normal.setFloat("Time", (float)glfwGetTime());
 		normal.setVec3("ambiant", glm::vec3(0.2f,0.2f,0.2f));
-		normal.use();
-		normal.setMat("model", lightCube.myPos);
+		normal.setVec3("camPos", glm::vec3(1.0f, 2.0f, -5.0f));
 
-		lightCube.myMesh.Draw(normal);
 		for (int i = 0; i < Objects.size(); i++) {
 			normal.setMat("model", Objects[i].myPos);
 			Objects[i].myMesh.Draw(normal);
@@ -212,6 +246,8 @@ int main() {
 		//glBindVertexArray(VAO);
 		////glDrawArrays(GL_TRIANGLES, 0, 3);
 		//glDrawElements(GL_TRIANGLES, 1000, GL_UNSIGNED_INT, 0);
+		GeomTest.use();
+		plane.myMesh.Draw(GeomTest);
 
 		//Swap the buffs. Check for events.
 		glfwSwapBuffers(window);

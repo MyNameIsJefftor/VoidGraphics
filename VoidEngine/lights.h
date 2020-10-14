@@ -3,6 +3,7 @@
 struct dirLight {
 	glm::vec3 direction;
 	glm::vec3 color;
+	glm::vec3 specular;
 };
 
 struct pointLight {
@@ -12,4 +13,5 @@ struct pointLight {
 	float constant;
 	float linear;
 	float quadratic;
+	glm::vec3 specular;
 };

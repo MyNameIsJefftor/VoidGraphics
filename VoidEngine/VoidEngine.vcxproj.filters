@@ -16,6 +16,15 @@
     <Filter Include="Shaders">
       <UniqueIdentifier>{7029f043-ec5e-4893-90aa-3fd2fa20bf5c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Frag">
+      <UniqueIdentifier>{3985de4e-cfd2-4d77-875b-4a6d91e0efe6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Vert">
+      <UniqueIdentifier>{dbe3fa54-44cf-41fe-a5e0-e3ffe16bbde3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Geom">
+      <UniqueIdentifier>{ae1038cd-4df8-4c0c-b3e1-955c5454b501}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -46,23 +55,32 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="BasicFragShader.frag">
-      <Filter>Shaders</Filter>
+    <None Include="fragTest.frag">
+      <Filter>Shaders\Frag</Filter>
     </None>
-    <None Include="BasicVertShader.vert">
-      <Filter>Shaders</Filter>
+    <None Include="BasicFragShader.frag">
+      <Filter>Shaders\Frag</Filter>
     </None>
     <None Include="normalFragShader.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="normalVertShader.vert">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\Frag</Filter>
     </None>
     <None Include="VertTest.vert">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\Vert</Filter>
     </None>
-    <None Include="fragTest.frag">
-      <Filter>Shaders</Filter>
+    <None Include="BasicVertShader.vert">
+      <Filter>Shaders\Vert</Filter>
+    </None>
+    <None Include="normalVertShader.vert">
+      <Filter>Shaders\Vert</Filter>
+    </None>
+    <None Include="test.geom">
+      <Filter>Shaders\Geom</Filter>
+    </None>
+    <None Include="PassthroughGeo.geom">
+      <Filter>Shaders\Geom</Filter>
+    </None>
+    <None Include="NormalGeo.geom">
+      <Filter>Shaders\Geom</Filter>
     </None>
   </ItemGroup>
 </Project>

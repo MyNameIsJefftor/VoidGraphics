@@ -10,15 +10,17 @@ struct Vertex {
 
 struct Texture {
 	unsigned int id;
+	std::string type;
 };
 
 class Mesh {
 public:
 	std::vector<Vertex> vertices;
 	std::vector<unsigned int> index;
-	unsigned int TextureId;
-	Mesh(std::vector<Vertex> verts, std::vector<unsigned int> ind, unsigned int text);
-	virtual void Draw(Shader& shader);
+	std::vector<unsigned int> TextureId;//0 is diffuse, 1 is specular
+	Mesh(std::vector<Vertex> verts, std::vector<unsigned int> ind, std::vector<unsigned int> text);
+	void Draw(Shader& shader);
+	void DrawnUnIndex(Shader& shader);
 protected:
 	//Render Data
 	unsigned int VAO, VBO, EBO;
@@ -58,14 +60,62 @@ void Mesh::setupMesh() {
 }
 
 void Mesh::Draw(Shader& shader) {
-	
-	glBindTexture(GL_TEXTURE_2D, TextureId);
+	/*shader.setInt("material.baseTex", TextureId[0]);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, TextureId[0]);
+	if (TextureId[1] != 0) {
+		shader.setInt("material.specular", TextureId[1]);
+		glActiveTexture(GL_TEXTURE0+1);
+		glBindTexture(GL_TEXTURE_2D, TextureId[1]);
+	}*/
+
+	for (unsigned int i = 0; i < TextureId.size(); i++) {
+		glActiveTexture(GL_TEXTURE0 + i);
+		if (i == 1) {
+			glBindTexture(GL_TEXTURE_2D, TextureId[i]);
+			shader.setInt("material.specular", i);
+		}
+		else {
+			glBindTexture(GL_TEXTURE_2D, TextureId[i]);
+			shader.setInt("material.baseTex", i);
+		}
+	}
+
+	glActiveTexture(GL_TEXTURE0);
 	glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLES, index.size(), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 }
 
-Mesh::Mesh(std::vector<Vertex> verts, std::vector<unsigned int> ind, unsigned int text) {
+void Mesh::DrawnUnIndex(Shader& shader) {
+	/*shader.setInt("material.baseTex", TextureId[0]);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, TextureId[0]);
+	if (TextureId[1] != 0) {
+		shader.setInt("material.specular", TextureId[1]);
+		glActiveTexture(GL_TEXTURE0+1);
+		glBindTexture(GL_TEXTURE_2D, TextureId[1]);
+	}*/
+
+	for (unsigned int i = 0; i < TextureId.size(); i++) {
+		glActiveTexture(GL_TEXTURE0 + i);
+		if (i == 1) {
+			glBindTexture(GL_TEXTURE_2D, TextureId[i]);
+			shader.setInt("material.specular", i);
+		}
+		else {
+			glBindTexture(GL_TEXTURE_2D, TextureId[i]);
+			shader.setInt("material.baseTex", i);
+		}
+	}
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindVertexArray(VAO);
+	glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+	glBindVertexArray(0);
+}
+
+Mesh::Mesh(std::vector<Vertex> verts, std::vector<unsigned int> ind,std::vector<unsigned int> text) {
 	this->vertices = verts;
 	this->index = ind;
 	this->TextureId = text;
@@ -73,7 +123,7 @@ Mesh::Mesh(std::vector<Vertex> verts, std::vector<unsigned int> ind, unsigned in
 	setupMesh();
 }
 
-Mesh CreateCube(float scale = 1, glm::vec3 color = glm::vec3(0.5f, 0.5f, 0.5f)) {
+Mesh CreateCube(std::vector<unsigned int> tex, float scale = 1, glm::vec3 color = glm::vec3(0.5f, 0.5f, 0.5f)) {
 	std::vector<Vertex> cube = {
 		//pos										//color		//normal							//TexCord
 	//1
@@ -113,10 +163,10 @@ Mesh CreateCube(float scale = 1, glm::vec3 color = glm::vec3(0.5f, 0.5f, 0.5f)) 
 		3, 0, 4,
 		3, 7, 4
 	};
-	return Mesh(cube, index, 1);
+	return Mesh(cube, index, tex);
 }
 
-Mesh generatePlane(float scale = 1, glm::vec3 Color = glm::vec3(0.5f, 0.5f, 0.5f)) {
+Mesh generatePlane(std::vector<unsigned int> tex, float scale = 1, glm::vec3 Color = glm::vec3(0.5f, 0.5f, 0.5f)) {
 	//create verts
 	std::vector<Vertex> Plane;
 	std::vector<unsigned int> index;
@@ -145,7 +195,7 @@ Mesh generatePlane(float scale = 1, glm::vec3 Color = glm::vec3(0.5f, 0.5f, 0.5f
 		index.push_back(cor + 10);
 		index.push_back(cor + 11);
 	}
-	return Mesh(Plane, index, 1);
+	return Mesh(Plane, index, tex);
 }
 /* junk code
 class cube {
