@@ -55,7 +55,7 @@ int main() {
 	//Shader basic("BasicVertShader.vs", "BasicFragShader.fs");
 	Shader normal("normalVertShader.vert", "normalFragShader.frag");
 	//Shader GeomTest("VertTest.vert", "fragTest.frag", "test.geom");
-	Shader Flag("wave.vert", "normalFragShader.frag");
+	Shader Flag("wave.vert", "normalFragShader.frag", "VertsToTriangles.geom");
 	//Arrays
 	std::vector<Object> Objects;
 	std::vector<dirLight> dirLights;

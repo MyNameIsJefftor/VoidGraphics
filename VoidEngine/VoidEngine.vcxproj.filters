@@ -67,22 +67,13 @@
     <None Include="normalVertShader.vert">
       <Filter>Shaders\Vert</Filter>
     </None>
-    <None Include="PassthroughGeo.geom">
-      <Filter>Shaders\Geom</Filter>
-    </None>
-    <None Include="moreGeo.frag">
-      <Filter>Shaders\Frag</Filter>
-    </None>
-    <None Include="moreGeo.geom">
-      <Filter>Shaders\Geom</Filter>
-    </None>
-    <None Include="moreGeo.vert">
-      <Filter>Shaders\Vert</Filter>
-    </None>
     <None Include="wave.vert">
       <Filter>Shaders\Vert</Filter>
     </None>
     <None Include="GEOLAYOUT.geom">
+      <Filter>Shaders\Geom</Filter>
+    </None>
+    <None Include="VertsToTriangles.geom">
       <Filter>Shaders\Geom</Filter>
     </None>
   </ItemGroup>

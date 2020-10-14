@@ -165,13 +165,10 @@
   <ItemGroup>
     <None Include="BasicFragShader.frag" />
     <None Include="BasicVertShader.vert" />
-    <None Include="moreGeo.frag" />
     <None Include="normalFragShader.frag" />
     <None Include="GEOLAYOUT.geom" />
     <None Include="normalVertShader.vert" />
-    <None Include="PassthroughGeo.geom" />
-    <None Include="moreGeo.geom" />
-    <None Include="moreGeo.vert" />
+    <None Include="VertsToTriangles.geom" />
     <None Include="wave.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
