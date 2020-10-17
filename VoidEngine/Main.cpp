@@ -16,6 +16,7 @@
 #include "Mesh.h"
 #include "Object.h"
 #include "lights.h"
+#include "Camera.h"
 
 //header obj
 #include "TestObj/resources.h"
@@ -23,9 +24,14 @@
 
 
 void framebuffer_size_callback(GLFWwindow* windo, int width, int height);
-void processInput(GLFWwindow* window);
-void renderTriangle();
-
+void processInput(GLFWwindow* window, Camera* cam);
+void mouseCallback(GLFWwindow* window, double x, double y);
+Camera MainCamera;
+double lastX = 0.0, lastY = 0.0;
+bool firstPass = true;
+float pitch = 0.0f, yaw = 0.0f;
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
 int width = 800, height = 800;
 
 int main() {
@@ -40,7 +46,13 @@ int main() {
 		glfwTerminate();
 		return -1;
 	}
+	glm::vec3 cameraPos = glm::vec3(1.0f, 2.0f, -5.0f);
+	MainCamera = Camera(cameraPos, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	glfwMakeContextCurrent(window);
+	glfwSetCursorPosCallback(window, mouseCallback);
+
+	//capture that mouse
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		std::cout << "Failure to load GLAD(os)" << std::endl;
@@ -119,21 +131,6 @@ int main() {
 	Object GCube { CreateCube(resourceTex,0.125f), glm::mat4(1.0f) };
 	Object BCube { CreateCube(resourceTex,0.125f), glm::mat4(1.0f) };
 
-	//Camera Shenanigans
-	//this is what look at does
-	glm::vec3 cameraPos = glm::vec3(1.0f, 2.0f, -5.0f);
-	/*glm::vec3 cameraTar = glm::vec3(0.0f, 0.0f, 0.0f);
-	glm::vec3 cameraDir = glm::normalize(cameraPos - cameraTar);
-	glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-	glm::vec3 cameraRig = glm::normalize(glm::cross(up, cameraDir));
-	glm::vec3 cameraUp = glm::cross(cameraDir, cameraRig);*/
-
-	glm::mat4 view;
-	view = glm::lookAt(
-		cameraPos,
-		glm::vec3(0.0f, 0.0f, 0.0f),
-		glm::vec3(0.0f, 1.0f, 0.0f));
-
 	//Tell gl to put the universe into perspective
 	glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
 
@@ -158,7 +155,7 @@ int main() {
 
 	pointLight red = {
 		glm::vec3(-1.0f, 0.0f, 0.0f),
-		glm::vec3(0.1f,0.0f,0.0f),
+		glm::vec3(1.0f,0.0f,0.0f),
 		1.0f,
 		0.7f,
 		1.8f,
@@ -187,8 +184,13 @@ int main() {
 	glm::mat4* instanceTest = genRandomPos(glm::vec3(0.0f, 1.0f, 0.0f), 1.0f, 100, 0.0625f);
 
 	while (!glfwWindowShouldClose(window)) {
+		//Calc delta
+		float currentFrame = (float)glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+
 		//Get input
-		processInput(window);
+		processInput(window, &MainCamera);
 		float sinlightz = 1.0f * sin((float)glfwGetTime());
 		float sinlighty = 1.0f * sin((float)glfwGetTime());
 		float coslighty = 1.0f * cos((float)glfwGetTime());
@@ -203,13 +205,10 @@ int main() {
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
-
-
 		//basic.use();
 		//update the lights
 		normal.use();
-		normal.setInt("numDirLights", dirLights.size());
+		normal.setInt("numDirLights", (int)dirLights.size());
 		for (int i = 0; i < dirLights.size(); i++) {
 			char uniform[64];
 
@@ -222,7 +221,7 @@ int main() {
 			sprintf_s(uniform, "dirlight[%i].specular", i);
 			normal.setVec3(uniform, dirLights[i].specular);
 		}
-		normal.setInt("numPointLights", pointLights.size());
+		normal.setInt("numPointLights", (int)pointLights.size());
 		for (int i = 0; i < pointLights.size(); i++) {
 			char uniform[64];
 
@@ -244,7 +243,7 @@ int main() {
 			sprintf_s(uniform, "pointlight[%i].specular", i);
 			normal.setVec3(uniform, pointLights[i].specular);
 		}
-		normal.setMat("view", view);
+		normal.setMat("view", MainCamera.getViewMat());
 		normal.setMat("projection", proj);
 		normal.setFloat("Time", (float)glfwGetTime());
 		normal.setVec3("ambiant", glm::vec3(0.2f,0.2f,0.2f));
@@ -264,7 +263,7 @@ int main() {
 		BCube.myMesh.Draw(normal);
 
 		Flag.use();
-		Flag.setInt("numDirLights", dirLights.size());
+		Flag.setInt("numDirLights", (int)dirLights.size());
 		for (int i = 0; i < dirLights.size(); i++) {
 			char uniform[64];
 
@@ -277,7 +276,7 @@ int main() {
 			sprintf_s(uniform, "dirlight[%i].specular", i);
 			Flag.setVec3(uniform, dirLights[i].specular);
 		}
-		Flag.setInt("numPointLights", pointLights.size());
+		Flag.setInt("numPointLights", (int)pointLights.size());
 		for (int i = 0; i < pointLights.size(); i++) {
 			char uniform[64];
 
@@ -299,18 +298,17 @@ int main() {
 			sprintf_s(uniform, "pointlight[%i].specular", i);
 			Flag.setVec3(uniform, pointLights[i].specular);
 		}
-		Flag.setMat("view", view);
+		Flag.setMat("view", MainCamera.getViewMat());
 		Flag.setMat("projection", proj);
 		Flag.setFloat("Time", (float)glfwGetTime());
 		Flag.setVec3("ambiant", glm::vec3(0.2f, 0.2f, 0.2f));
 		Flag.setVec3("camPos", glm::vec3(1.0f, 2.0f, -5.0f));
-		Flag.setMat("view", view);
 		Flag.setMat("projection", proj);
 		Flag.setMat("model", plane.myPos);
 		plane.myMesh.DrawnUnIndex(Flag);
 
 		Instance.use();
-		Instance.setInt("numDirLights", dirLights.size());
+		Instance.setInt("numDirLights", (int)dirLights.size());
 		for (int i = 0; i < dirLights.size(); i++) {
 			char uniform[64];
 
@@ -323,7 +321,7 @@ int main() {
 			sprintf_s(uniform, "dirlight[%i].specular", i);
 			Flag.setVec3(uniform, dirLights[i].specular);
 		}
-		Instance.setInt("numPointLights", pointLights.size());
+		Instance.setInt("numPointLights", (int)pointLights.size());
 		for (int i = 0; i < pointLights.size(); i++) {
 			char uniform[64];
 
@@ -345,12 +343,11 @@ int main() {
 			sprintf_s(uniform, "pointlight[%i].specular", i);
 			Instance.setVec3(uniform, pointLights[i].specular);
 		}
-		Instance.setMat("view", view);
+		Instance.setMat("view", MainCamera.getViewMat());
 		Instance.setMat("projection", proj);
 		Instance.setFloat("Time", (float)glfwGetTime());
 		Instance.setVec3("ambiant", glm::vec3(0.2f, 0.2f, 0.2f));
 		Instance.setVec3("camPos", glm::vec3(1.0f, 2.0f, -5.0f));
-		Instance.setMat("view", view);
 		Instance.setMat("projection", proj);
 		Instance.setMat("model", plane.myPos);
 		drawInstancedObj(instanceTest, cube);
@@ -368,11 +365,40 @@ void framebuffer_size_callback(GLFWwindow* windo, int nwidth, int nheight) {
 	glViewport(0, 0, width, height);
 }
 
-void processInput(GLFWwindow* window) {
+void processInput(GLFWwindow* window, Camera* cam) {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+		MainCamera = Camera(glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	//camera control
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+		MainCamera.keyboardInput(Forward, deltaTime);
+	}
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+		MainCamera.keyboardInput(Backward, deltaTime);
+	}
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+		MainCamera.keyboardInput(Left, deltaTime);
+	}
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+		MainCamera.keyboardInput(Right, deltaTime);
+	}
+}
+
+void mouseCallback(GLFWwindow* window, double x, double y) {
+	if (firstPass) {
+		lastX = x;
+		lastY = y;
+		firstPass = false;
+	}
+	float xoff = (float)(x - lastX);
+	float yoff = (float)(lastY - y);
+	lastX = x;
+	lastY = y;
+	MainCamera.mouseInput(xoff, yoff);
+
 }

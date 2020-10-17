@@ -11,11 +11,11 @@ glm::mat4* genRandomPos(glm::vec3 center, float radius = 2.0f, int amount = 100,
 	for (int i = 0; i < amount; i++) {
 		glm::mat4 model = glm::mat4(1.0f);
 		float angle = i / (float)amount * 360.0f;
-		float offset = (rand() % (int)(2 * 0.0625 * 100)) / 100.0f - 0.0625;
+		float offset = (float)(rand() % (int)(2 * 0.0625 * 100)) / 100.0f - 0.0625f;
 		float x = center.x +(sin(angle)* radius + offset);
-		offset = (rand() % (int)(2 * 0.0625 * 100)) / 100.0f - 0.0625;
+		offset = (rand() % (int)(2 * 0.0625f * 100)) / 100.0f - 0.0625f;
 		float y = center.y + -sin(angle)* radius + offset;
-		offset = (rand() % (int)(2 * 0.0625 * 100)) / 100.0f - 0.0625;
+		offset = (rand() % (int)(2 * 0.0625f * 100)) / 100.0f - 0.0625f;
 		float z = center.z + cos(angle)* radius + offset;
 		model = glm::translate(model, glm::vec3(x, y, z));
 		model = glm::scale(model, glm::vec3(scale));
