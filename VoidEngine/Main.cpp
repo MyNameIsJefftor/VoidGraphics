@@ -247,7 +247,7 @@ int main() {
 		normal.setMat("projection", proj);
 		normal.setFloat("Time", (float)glfwGetTime());
 		normal.setVec3("ambiant", glm::vec3(0.2f,0.2f,0.2f));
-		normal.setVec3("camPos", glm::vec3(1.0f, 2.0f, -5.0f));
+		normal.setVec3("camPos", MainCamera.pos);
 
 		for (int i = 0; i < Objects.size(); i++) {
 			normal.setMat("model", Objects[i].myPos);
@@ -302,7 +302,7 @@ int main() {
 		Flag.setMat("projection", proj);
 		Flag.setFloat("Time", (float)glfwGetTime());
 		Flag.setVec3("ambiant", glm::vec3(0.2f, 0.2f, 0.2f));
-		Flag.setVec3("camPos", glm::vec3(1.0f, 2.0f, -5.0f));
+		Flag.setVec3("camPos", MainCamera.pos);
 		Flag.setMat("projection", proj);
 		Flag.setMat("model", plane.myPos);
 		plane.myMesh.DrawnUnIndex(Flag);
@@ -347,7 +347,7 @@ int main() {
 		Instance.setMat("projection", proj);
 		Instance.setFloat("Time", (float)glfwGetTime());
 		Instance.setVec3("ambiant", glm::vec3(0.2f, 0.2f, 0.2f));
-		Instance.setVec3("camPos", glm::vec3(1.0f, 2.0f, -5.0f));
+		Instance.setVec3("camPos", MainCamera.pos);
 		Instance.setMat("projection", proj);
 		Instance.setMat("model", plane.myPos);
 		drawInstancedObj(instanceTest, cube);

@@ -50,8 +50,9 @@ void main()
     //setup dirlights
     for(int i = 0; i < maxDirLights; i++){
         vec3 lightDir = normalize(-dirlight[i].direction);
+        vec3 halfDir = normalize(lightDir + viewDir);
         vec3 reflectdir = reflect(-lightDir, norm);
-        float spec = pow(max(dot(viewDir, reflectdir),0.0), 32);
+        float spec = pow(max(dot(norm, halfDir),0.0), 32);
         vec3 specular = dirlight[i].specular * spec * vec3(texture(material.specular, ShaderIn.Tex));
         vec3 diff = max(dot(norm, lightDir), 0.0) * dirlight[i].color* vec3(texture(material.baseTex, ShaderIn.Tex));
         dirFinal[i] =  diff + specular;
@@ -60,8 +61,9 @@ void main()
     //setup pointlights
     for(int i = 0; i<maxPointLights; i ++){
         vec3 lightDir = normalize(pointlight[i].pos - ShaderIn.FragPos);
+        vec3 halfDir = normalize(lightDir + viewDir);
         vec3 reflectdir = reflect(-lightDir, norm);
-        float spec = pow(max(dot(viewDir, reflectdir),0.0), 32);
+        float spec = pow(max(dot(norm, halfDir),0.0), 32);
         vec3 specular = pointlight[i].specular * vec3(texture(material.specular, ShaderIn.Tex)) * spec;
         vec3 diff = max(dot(norm, lightDir),0.0) * pointlight[i].color *vec3(texture(material.baseTex, ShaderIn.Tex));
         float dis = length(pointlight[i].pos-ShaderIn.FragPos);
