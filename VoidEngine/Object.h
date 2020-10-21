@@ -3,6 +3,7 @@
 struct Object {
 	Mesh myMesh;
 	glm::mat4 myPos = glm::mat4(1.0f);
+	Shader* myShader;
 };
 
 glm::mat4* genRandomPos(glm::vec3 center, float radius = 2.0f, int amount = 100, float scale = 1.0f) {

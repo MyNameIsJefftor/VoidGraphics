@@ -160,8 +160,10 @@
     <ClInclude Include="Object.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="ShaderReader.h" />
+    <ClInclude Include="Skybox.h" />
     <ClInclude Include="TestObj\resources.h" />
     <ClInclude Include="TestObj\test pyramid.h" />
+    <ClInclude Include="TextureCreation.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="BasicFragShader.frag" />
@@ -170,6 +172,8 @@
     <None Include="normalFragShader.frag" />
     <None Include="GEOLAYOUT.geom" />
     <None Include="normalVertShader.vert" />
+    <None Include="Skybox.frag" />
+    <None Include="Skybox.vert" />
     <None Include="VertsToTriangles.geom" />
     <None Include="wave.vert" />
   </ItemGroup>

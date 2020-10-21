@@ -1,9 +1,12 @@
 ﻿  Main.cpp
-C:\Users\admin\Desktop\Progamming\pp4\Project\VoidGraphics\VoidEngine\Mesh.h(85,63): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
-C:\Users\admin\Desktop\Progamming\pp4\Project\VoidGraphics\VoidEngine\Mesh.h(113,63): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
-C:\Users\admin\Desktop\Progamming\pp4\Project\VoidGraphics\VoidEngine\Object.h(36,72): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
-C:\Users\admin\Desktop\Progamming\pp4\Project\VoidGraphics\VoidEngine\Object.h(38,85): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
-C:\Users\admin\Desktop\Progamming\pp4\Project\VoidGraphics\VoidEngine\Object.h(40,85): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
-C:\Users\admin\Desktop\Progamming\pp4\Project\VoidGraphics\VoidEngine\Object.h(42,85): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
-C:\Users\admin\Desktop\Progamming\pp4\Project\VoidGraphics\VoidEngine\Object.h(52,93): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+C:\Users\admin\Desktop\Progamming\pp4\Project\VoidGraphics\VoidEngine\Mesh.h(72,63): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+C:\Users\admin\Desktop\Progamming\pp4\Project\VoidGraphics\VoidEngine\Mesh.h(91,63): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+C:\Users\admin\Desktop\Progamming\pp4\Project\VoidGraphics\VoidEngine\Skybox.h(37,72): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+C:\Users\admin\Desktop\Progamming\pp4\Project\VoidGraphics\VoidEngine\Object.h(37,72): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+C:\Users\admin\Desktop\Progamming\pp4\Project\VoidGraphics\VoidEngine\Object.h(39,85): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+C:\Users\admin\Desktop\Progamming\pp4\Project\VoidGraphics\VoidEngine\Object.h(41,85): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+C:\Users\admin\Desktop\Progamming\pp4\Project\VoidGraphics\VoidEngine\Object.h(43,85): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+C:\Users\admin\Desktop\Progamming\pp4\Project\VoidGraphics\VoidEngine\Object.h(53,93): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+C:\Users\admin\Desktop\Progamming\pp4\Project\VoidGraphics\VoidEngine\Main.cpp(38,14): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+C:\Users\admin\Desktop\Progamming\pp4\Project\VoidGraphics\VoidEngine\Main.cpp(212,76): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
   VoidEngine.vcxproj -> C:\Users\admin\Desktop\Progamming\pp4\Project\VoidGraphics\VoidEngine\x64\Debug\VoidEngine.exe

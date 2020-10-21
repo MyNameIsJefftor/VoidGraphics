@@ -13,7 +13,7 @@
 
 //my stuff
 #include "ShaderReader.h"
-#include "Mesh.h"
+#include "Skybox.h"
 #include "Object.h"
 #include "lights.h"
 #include "Camera.h"
@@ -21,6 +21,7 @@
 //header obj
 #include "TestObj/resources.h"
 #include "TestObj/test pyramid.h"
+#include "TestObj/Building.h"
 
 
 void framebuffer_size_callback(GLFWwindow* windo, int width, int height);
@@ -28,11 +29,13 @@ void processInput(GLFWwindow* window, Camera* cam);
 void mouseCallback(GLFWwindow* window, double x, double y);
 Camera MainCamera;
 double lastX = 0.0, lastY = 0.0;
-bool firstPass = true;
+bool firstPass = true, Mouse = true;
 float pitch = 0.0f, yaw = 0.0f;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
-int width = 800, height = 800;
+int width = 800, height = 450;
+int awidth = 16, aheight = 9;
+float aspect = awidth / aheight;
 
 int main() {
 	glfwInit();
@@ -46,6 +49,7 @@ int main() {
 		glfwTerminate();
 		return -1;
 	}
+	glfwSetWindowAspectRatio(window, awidth, aheight);
 	glm::vec3 cameraPos = glm::vec3(1.0f, 2.0f, -5.0f);
 	MainCamera = Camera(cameraPos, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	glfwMakeContextCurrent(window);
@@ -69,6 +73,7 @@ int main() {
 	//Shader GeomTest("VertTest.vert", "fragTest.frag", "test.geom");
 	Shader Flag("wave.vert", "normalFragShader.frag", "VertsToTriangles.geom");
 	Shader Instance("instance.vert", "normalFragShader.frag");
+	Shader SkyboxShad("Skybox.vert", "Skybox.frag");
 
 	//Arrays
 	std::vector<Object> Objects;
@@ -78,58 +83,47 @@ int main() {
 	//Convert obj from header to my format
 	
 	std::vector<Vertex> headerImport;
-	headerImport.resize(sizeof(resources_data)/sizeof(OBJ_VERT));
-	for (int i = 0; i < sizeof(resources_data) / sizeof(OBJ_VERT); i++) {
-		float x = resources_data[i].pos[0];
-		float y = resources_data[i].pos[1];
-		float z = resources_data[i].pos[2];
+	headerImport.resize(sizeof(Building_data)/sizeof(OBJ_VERT));
+	for (int i = 0; i < sizeof(Building_data) / sizeof(OBJ_VERT); i++) {
+		float x = Building_data[i].pos[0];
+		float y = Building_data[i].pos[1];
+		float z = Building_data[i].pos[2];
 		headerImport[i].Position = glm::vec3(x,y,z);
-		x = resources_data[i].nrm[0];
-		y = resources_data[i].nrm[1];
-		z = resources_data[i].nrm[2];
+		x = Building_data[i].nrm[0];
+		y = Building_data[i].nrm[1];
+		z = Building_data[i].nrm[2];
 		headerImport[i].Normal = glm::vec3(x, y, z);
-		x = resources_data[i].uvw[0];
-		y = resources_data[i].uvw[1];
+		x = Building_data[i].uvw[0];
+		y = Building_data[i].uvw[1];
 		headerImport[i].TexCord = glm::vec2(x, y);
 		headerImport[i].Color = glm::vec3(0.5f, 0.5f, 0.0f);
 	}
 	std::vector<unsigned int> tempInd;
-	tempInd.resize(sizeof(resources_indicies) / sizeof(unsigned int));
-	for (int i = 0; i < sizeof(resources_indicies)/sizeof(unsigned int); i++) {
-		tempInd[i] = resources_indicies[i];
+	tempInd.resize(sizeof(Building_indicies) / sizeof(unsigned int));
+	for (int i = 0; i < sizeof(Building_indicies)/sizeof(unsigned int); i++) {
+		tempInd[i] = Building_indicies[i];
 	}
 	// load and create a texture 
 	// -------------------------
-	std::vector<unsigned int> resourceTex;
-	ktxTexture* resourceTexDiff;
-	ktxTexture* resourceTexSpec;
-	KTX_error_code result;
-	unsigned int resourcediffId = 0, resourcespecId = 0;
-	GLenum target, glerror;
+	std::vector<Texture> Resource;
+	Texture temp = CreateDiff("Texture/BuildingDiff.ktx");
+	Resource.push_back(temp);
+	temp = CreateSpec("Texture/Resource_Spec.ktx");
+	Resource.push_back(temp);
 
-	result = ktxTexture_CreateFromNamedFile("Texture/resource.ktx", KTX_TEXTURE_CREATE_NO_FLAGS, &resourceTexDiff);
-	glGenTextures(1, &resourcediffId);
-	result = ktxTexture_GLUpload(resourceTexDiff, &resourcediffId, &target, &glerror);
-	resourceTex.push_back(resourcediffId);
+	Skybox Skybox = CreateSkybox("Texture/Skybox.ktx", SkyboxShad);
 
-	result = ktxTexture_CreateFromNamedFile("Texture/resource_spec.ktx", KTX_TEXTURE_CREATE_NO_FLAGS, &resourceTexSpec);
-	glGenTextures(1, &resourcespecId);
-	result = ktxTexture_GLUpload(resourceTexSpec, &resourcespecId, &target, &glerror);
-	resourceTex.push_back(resourcespecId);
-
-
-	Object cube = { CreateCube(resourceTex), glm::mat4(1.0f)};
-	Object plane = { generatePlane(resourceTex,3), glm::mat4(1.0f) };
-	Object resource = { Mesh(headerImport, tempInd, resourceTex), glm::mat4(1.0f) };
-	//cube.myPos = glm::translate(cube.myPos, glm::vec3(-0.5f, 0.0f, 0.0f));
+	Object cube = { CreateCube(Resource), glm::mat4(1.0f)};
+	Object plane = { generatePlane(Resource,3), glm::mat4(1.0f) };
+	Object resource = { Mesh(headerImport, tempInd, Resource), glm::mat4(1.0f) };
 	plane.myPos = glm::translate(plane.myPos, glm::vec3(0.0f, -1.0f, 0.0f));
 	resource.myPos = glm::scale(resource.myPos, glm::vec3(0.05f, 0.05f, 0.05f));
 	Objects.push_back(resource);
-	Objects.push_back(cube);
+	//Objects.push_back(cube);
 
-	Object RCube { CreateCube(resourceTex,0.125f), glm::mat4(1.0f) };
-	Object GCube { CreateCube(resourceTex,0.125f), glm::mat4(1.0f) };
-	Object BCube { CreateCube(resourceTex,0.125f), glm::mat4(1.0f) };
+	Object RCube { CreateCube(Resource,0.125f), glm::mat4(1.0f) };
+	Object GCube { CreateCube(Resource,0.125f), glm::mat4(1.0f) };
+	Object BCube { CreateCube(Resource,0.125f), glm::mat4(1.0f) };
 
 	//Tell gl to put the universe into perspective
 	glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
@@ -202,8 +196,22 @@ int main() {
 		GCube.myPos = glm::translate(glm::mat4(1.0f), pointLights[1].position);
 		BCube.myPos = glm::translate(glm::mat4(1.0f), pointLights[2].position);
 		//Perform WRENDER
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		//glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		//DrawSkybox
+		//DrawSkybox(Skybox, MainCamera.getViewMat(), proj);
+		glm::vec3 temp = MainCamera.pos;
+		MainCamera.pos = glm::vec3(0.0f);
+		glDepthMask(GL_FALSE);
+		SkyboxShad.use();
+		SkyboxShad.setMat("view", MainCamera.getViewMat());
+		SkyboxShad.setMat("projection", proj);
+		glBindVertexArray(Skybox.cube.VAO);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, Skybox.tex.id);
+		glDrawElements(GL_TRIANGLES, Skybox.cube.index.size(), GL_UNSIGNED_INT, 0);
+		glDepthMask(GL_TRUE);
+		MainCamera.pos = temp;
 
 		//basic.use();
 		//update the lights
@@ -360,8 +368,8 @@ int main() {
 }
 
 void framebuffer_size_callback(GLFWwindow* windo, int nwidth, int nheight) {
-	//width = nwidth;
-	//height = nheight;
+	width = nwidth;
+	height = nheight;
 	glViewport(0, 0, width, height);
 }
 
@@ -374,6 +382,16 @@ void processInput(GLFWwindow* window, Camera* cam) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
 		MainCamera = Camera(glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
+		if (Mouse){
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			Mouse = false;
+		}
+		else {
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			Mouse = true;
+		}
+	}
 	//camera control
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 		MainCamera.keyboardInput(Forward, deltaTime);
@@ -399,6 +417,7 @@ void mouseCallback(GLFWwindow* window, double x, double y) {
 	float yoff = (float)(lastY - y);
 	lastX = x;
 	lastY = y;
-	MainCamera.mouseInput(xoff, yoff);
+	if(Mouse)
+		MainCamera.mouseInput(xoff, yoff);
 
 }

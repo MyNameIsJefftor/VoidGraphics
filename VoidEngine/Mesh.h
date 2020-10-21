@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include "TextureCreation.h"
 
 struct Vertex {
 	glm::vec3 Position;
@@ -8,17 +9,12 @@ struct Vertex {
 	glm::vec2 TexCord;
 };
 
-struct Texture {
-	unsigned int id;
-	std::string type;
-};
-
 class Mesh {
 public:
 	std::vector<Vertex> vertices;
 	std::vector<unsigned int> index;
-	std::vector<unsigned int> TextureId;//0 is diffuse, 1 is specular
-	Mesh(std::vector<Vertex> verts, std::vector<unsigned int> ind, std::vector<unsigned int> text);
+	std::vector<Texture> Textures;
+	Mesh(std::vector<Vertex> verts, std::vector<unsigned int> ind, std::vector<Texture> text);
 	void Draw(Shader& shader);
 	void DrawnUnIndex(Shader& shader);
 	//Render Data
@@ -59,23 +55,14 @@ void Mesh::setupMesh() {
 }
 
 void Mesh::Draw(Shader& shader) {
-	/*shader.setInt("material.baseTex", TextureId[0]);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, TextureId[0]);
-	if (TextureId[1] != 0) {
-		shader.setInt("material.specular", TextureId[1]);
-		glActiveTexture(GL_TEXTURE0+1);
-		glBindTexture(GL_TEXTURE_2D, TextureId[1]);
-	}*/
-
-	for (unsigned int i = 0; i < TextureId.size(); i++) {
+	for (unsigned int i = 0; i < Textures.size(); i++) {
 		glActiveTexture(GL_TEXTURE0 + i);
-		if (i == 1) {
-			glBindTexture(GL_TEXTURE_2D, TextureId[i]);
+		if (Textures[i].type == "Spec") {
+			glBindTexture(GL_TEXTURE_2D, Textures[i].id);
 			shader.setInt("material.specular", i);
 		}
-		else {
-			glBindTexture(GL_TEXTURE_2D, TextureId[i]);
+		else if(Textures[i].type == "Diff") {
+			glBindTexture(GL_TEXTURE_2D, Textures[i].id);
 			shader.setInt("material.baseTex", i);
 		}
 	}
@@ -87,23 +74,14 @@ void Mesh::Draw(Shader& shader) {
 }
 
 void Mesh::DrawnUnIndex(Shader& shader) {
-	/*shader.setInt("material.baseTex", TextureId[0]);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, TextureId[0]);
-	if (TextureId[1] != 0) {
-		shader.setInt("material.specular", TextureId[1]);
-		glActiveTexture(GL_TEXTURE0+1);
-		glBindTexture(GL_TEXTURE_2D, TextureId[1]);
-	}*/
-
-	for (unsigned int i = 0; i < TextureId.size(); i++) {
+	for (unsigned int i = 0; i < Textures.size(); i++) {
 		glActiveTexture(GL_TEXTURE0 + i);
-		if (i == 1) {
-			glBindTexture(GL_TEXTURE_2D, TextureId[i]);
+		if (Textures[i].type == "Spec") {
+			glBindTexture(GL_TEXTURE_2D, Textures[i].id);
 			shader.setInt("material.specular", i);
 		}
-		else {
-			glBindTexture(GL_TEXTURE_2D, TextureId[i]);
+		else if (Textures[i].type == "Diff") {
+			glBindTexture(GL_TEXTURE_2D, Textures[i].id);
 			shader.setInt("material.baseTex", i);
 		}
 	}
@@ -114,15 +92,15 @@ void Mesh::DrawnUnIndex(Shader& shader) {
 	glBindVertexArray(0);
 }
 
-Mesh::Mesh(std::vector<Vertex> verts, std::vector<unsigned int> ind,std::vector<unsigned int> text) {
-	this->vertices = verts;
-	this->index = ind;
-	this->TextureId = text;
+Mesh::Mesh(std::vector<Vertex> verts, std::vector<unsigned int> ind, std::vector<Texture> text) {
+	vertices = verts;
+	index = ind;
+	Textures = text;
 
 	setupMesh();
 }
 
-Mesh CreateCube(std::vector<unsigned int> tex, float scale = 1, glm::vec3 color = glm::vec3(0.5f, 0.5f, 0.5f)) {
+Mesh CreateCube(std::vector<Texture> tex, float scale = 1, glm::vec3 color = glm::vec3(0.5f, 0.5f, 0.5f)) {
 	std::vector<Vertex> cube = {
 		//pos										//color		//normal							//TexCord
 	//1
@@ -139,16 +117,32 @@ Mesh CreateCube(std::vector<unsigned int> tex, float scale = 1, glm::vec3 color 
 		{glm::vec3(-0.5f,  -0.5f, 0.5f) * scale,	color,		glm::vec3(-0.33f, -0.33f, 0.33f),	glm::vec2(1.0f, 1.0f)},
 	//7												
 		{glm::vec3(0.5f,  -0.5f, 0.5f) * scale,		color,		glm::vec3(0.33f, -0.33f, 0.33f),	glm::vec2(0.0f, 1.0f)},
-	//8												
-		{glm::vec3(0.5f,  -0.5f, -0.5f) * scale,	color,		glm::vec3(0.33f, -0.33f, -0.33f),	glm::vec2(0.0f, 0.0f)}
+	//8	7											
+		{glm::vec3(0.5f,  -0.5f, -0.5f) * scale,	color,		glm::vec3(0.33f, -0.33f, -0.33f),	glm::vec2(0.0f, 0.0f)},
+	//2.2	8											
+		{glm::vec3(-0.5f,  0.5f, 0.5f) * scale,		color,		glm::vec3(-0.33f, 0.33f, 0.33f),	glm::vec2(0.0f, 0.0f)},
+	//3.2		9									
+		{glm::vec3(0.5f,  0.5f, 0.5f) * scale,		color,		glm::vec3(0.33f, 0.33f, 0.33f),		glm::vec2(1.0f, 0.0f)},
+	//7.2		10									
+		{glm::vec3(0.5f,  -0.5f, 0.5f) * scale,		color,		glm::vec3(0.33f, -0.33f, 0.33f),	glm::vec2(1.0f, 1.0f)},
+	//6.2			11									
+		{glm::vec3(-0.5f,  -0.5f, 0.5f) * scale,	color,		glm::vec3(-0.33f, -0.33f, 0.33f),	glm::vec2(0.0f, 1.0f)},
+	//4.2				12								
+		{glm::vec3(0.5f,  0.5f, -0.5f) * scale,		color,		glm::vec3(0.33f, 0.33f, -0.33f),	glm::vec2(0.0f, 0.0f)},
+	//1.2	13
+		{glm::vec3(-0.5f,  0.5f, -0.5f) * scale,	color,		glm::vec3(-0.33f, 0.33f, -0.33f),	glm::vec2(1.0f, 0.0f)},
+	//8.2		14										
+		{glm::vec3(0.5f,  -0.5f, -0.5f) * scale,	color,		glm::vec3(0.33f, -0.33f, -0.33f),	glm::vec2(0.0f, 1.0f)},
+	//5.2			15									
+		{glm::vec3(-0.5f,  -0.5f, -0.5f) * scale,	color,		glm::vec3(-0.33f, -0.33f, -0.33f),	glm::vec2(1.0f, 1.0f)},
 	};
 	std::vector<unsigned int> index = {
 		//top
 		0, 1, 3,
 		1, 2, 3,
 		//front
-		1, 2, 6,
-		1, 5, 6,
+		8, 10, 9,
+		8, 11, 10,
 		//right
 		3, 2, 6,
 		3, 7, 6,
@@ -159,13 +153,13 @@ Mesh CreateCube(std::vector<unsigned int> tex, float scale = 1, glm::vec3 color 
 		6, 5, 4,
 		6, 7, 4,
 		//back
-		3, 0, 4,
-		3, 7, 4
+		12, 13, 15,
+		12, 15, 14
 	};
 	return Mesh(cube, index, tex);
 }
 
-Mesh generatePlane(std::vector<unsigned int> tex, float scale = 1, glm::vec3 Color = glm::vec3(0.5f, 0.5f, 0.5f)) {
+Mesh generatePlane(std::vector<Texture> tex, float scale = 1, glm::vec3 Color = glm::vec3(0.5f, 0.5f, 0.5f)) {
 	//create verts
 	std::vector<Vertex> Plane;
 	std::vector<unsigned int> index;
