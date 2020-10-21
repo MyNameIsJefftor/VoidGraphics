@@ -17,19 +17,23 @@
 #include "Object.h"
 #include "lights.h"
 #include "Camera.h"
+#include "shadows.h"
 
 //header obj
 #include "TestObj/resources.h"
-#include "TestObj/test pyramid.h"
 #include "TestObj/Building.h"
+#include "TestObj/city_triangulated.h"
+#include "TestObj/groundplane.h"
+
 
 
 void framebuffer_size_callback(GLFWwindow* windo, int width, int height);
 void processInput(GLFWwindow* window, Camera* cam);
 void mouseCallback(GLFWwindow* window, double x, double y);
+void setShaders(std::vector<Shader*> shaders, std::vector<dirLight> dirLights, std::vector<pointLight> pointLights, glm::mat4 proj);
 Camera MainCamera;
 double lastX = 0.0, lastY = 0.0;
-bool firstPass = true, Mouse = true;
+bool firstPass = true, Mouse = true, grayScale = false;
 float pitch = 0.0f, yaw = 0.0f;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
@@ -79,56 +83,63 @@ int main() {
 	std::vector<Object> Objects;
 	std::vector<dirLight> dirLights;
 	std::vector<pointLight> pointLights;
+	std::vector<Shader*> Shaders;
+
+	Shaders.push_back(&normal);
+	Shaders.push_back(&Flag);
+	Shaders.push_back(&Instance);
 
 	//Convert obj from header to my format
 	
 	std::vector<Vertex> headerImport;
-	headerImport.resize(sizeof(Building_data)/sizeof(OBJ_VERT));
-	for (int i = 0; i < sizeof(Building_data) / sizeof(OBJ_VERT); i++) {
-		float x = Building_data[i].pos[0];
-		float y = Building_data[i].pos[1];
-		float z = Building_data[i].pos[2];
+	headerImport.resize(sizeof(city_triangulated_data)/sizeof(OBJ_VERT));
+	for (int i = 0; i < sizeof(city_triangulated_data) / sizeof(OBJ_VERT); i++) {
+		float x = city_triangulated_data[i].pos[0];
+		float y = city_triangulated_data[i].pos[1];
+		float z = city_triangulated_data[i].pos[2];
 		headerImport[i].Position = glm::vec3(x,y,z);
-		x = Building_data[i].nrm[0];
-		y = Building_data[i].nrm[1];
-		z = Building_data[i].nrm[2];
+		x = city_triangulated_data[i].nrm[0];
+		y = city_triangulated_data[i].nrm[1];
+		z = city_triangulated_data[i].nrm[2];
 		headerImport[i].Normal = glm::vec3(x, y, z);
-		x = Building_data[i].uvw[0];
-		y = Building_data[i].uvw[1];
-		headerImport[i].TexCord = glm::vec2(x, y);
+		x = city_triangulated_data[i].uvw[0];
+		y = city_triangulated_data[i].uvw[1];
+		headerImport[i].TexCord = glm::vec2(x, y)*3.0f;
 		headerImport[i].Color = glm::vec3(0.5f, 0.5f, 0.0f);
 	}
 	std::vector<unsigned int> tempInd;
-	tempInd.resize(sizeof(Building_indicies) / sizeof(unsigned int));
-	for (int i = 0; i < sizeof(Building_indicies)/sizeof(unsigned int); i++) {
-		tempInd[i] = Building_indicies[i];
+	tempInd.resize(sizeof(city_triangulated_indicies) / sizeof(unsigned int));
+	for (int i = 0; i < sizeof(city_triangulated_indicies)/sizeof(unsigned int); i++) {
+		tempInd[i] = city_triangulated_indicies[i];
 	}
 	// load and create a texture 
 	// -------------------------
 	std::vector<Texture> Resource;
-	Texture temp = CreateDiff("Texture/BuildingDiff.ktx");
+	Texture temp = CreateDiff("Texture/Resource.ktx");
 	Resource.push_back(temp);
 	temp = CreateSpec("Texture/Resource_Spec.ktx");
 	Resource.push_back(temp);
 
 	Skybox Skybox = CreateSkybox("Texture/Skybox.ktx", SkyboxShad);
 
-	Object cube = { CreateCube(Resource), glm::mat4(1.0f)};
-	Object plane = { generatePlane(Resource,3), glm::mat4(1.0f) };
-	Object resource = { Mesh(headerImport, tempInd, Resource), glm::mat4(1.0f) };
+	Object cube = { CreateCube(Resource), glm::mat4(1.0f), &Instance};
+	Object plane = { generatePlane(Resource,3), glm::mat4(1.0f) , &Flag};
+	Object Buildings = { Mesh(headerImport, tempInd, CreateTexture("Texture/citydiff.ktx","Texture/cityspec.ktx")), glm::mat4(1.0), &normal };
 	plane.myPos = glm::translate(plane.myPos, glm::vec3(0.0f, -1.0f, 0.0f));
-	resource.myPos = glm::scale(resource.myPos, glm::vec3(0.05f, 0.05f, 0.05f));
-	Objects.push_back(resource);
-	//Objects.push_back(cube);
+	Buildings.myPos = glm::scale(Buildings.myPos, glm::vec3(2.0f));
+	Objects.push_back(Buildings);
+	Objects.push_back(plane);
 
-	Object RCube { CreateCube(Resource,0.125f), glm::mat4(1.0f) };
-	Object GCube { CreateCube(Resource,0.125f), glm::mat4(1.0f) };
-	Object BCube { CreateCube(Resource,0.125f), glm::mat4(1.0f) };
+	Object RCube { CreateCube(Resource,0.125f), glm::mat4(1.0f), &normal };
+	Object GCube { CreateCube(Resource,0.125f), glm::mat4(1.0f), &normal };
+	Object BCube { CreateCube(Resource,0.125f), glm::mat4(1.0f), &normal };
 
 	//Tell gl to put the universe into perspective
 	glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
 
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glm::vec3 LightColor = glm::vec3(1.0f, 1.0f, 1.0f);
 	glm::vec3 lightPos = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -205,6 +216,7 @@ int main() {
 		MainCamera.pos = glm::vec3(0.0f);
 		glDepthMask(GL_FALSE);
 		SkyboxShad.use();
+		SkyboxShad.setBool("grayScale", grayScale);
 		SkyboxShad.setMat("view", MainCamera.getViewMat());
 		SkyboxShad.setMat("projection", proj);
 		glBindVertexArray(Skybox.cube.VAO);
@@ -215,150 +227,19 @@ int main() {
 
 		//basic.use();
 		//update the lights
-		normal.use();
-		normal.setInt("numDirLights", (int)dirLights.size());
-		for (int i = 0; i < dirLights.size(); i++) {
-			char uniform[64];
-
-			sprintf_s(uniform, "dirlight[%i].direction", i);
-			normal.setVec3(uniform, dirLights[i].direction);
-
-			sprintf_s(uniform, "dirlight[%i].color", i);
-			normal.setVec3(uniform, dirLights[i].color);
-
-			sprintf_s(uniform, "dirlight[%i].specular", i);
-			normal.setVec3(uniform, dirLights[i].specular);
-		}
-		normal.setInt("numPointLights", (int)pointLights.size());
-		for (int i = 0; i < pointLights.size(); i++) {
-			char uniform[64];
-
-			sprintf_s(uniform, "pointlight[%i].pos", i);
-			normal.setVec3(uniform, pointLights[i].position);
-
-			sprintf_s(uniform, "pointlight[%i].color", i);
-			normal.setVec3(uniform, pointLights[i].color);
-
-			sprintf_s(uniform, "pointlight[%i].constant", i);
-			normal.setFloat(uniform, pointLights[i].constant);
-
-			sprintf_s(uniform, "pointlight[%i].linear", i);
-			normal.setFloat(uniform, pointLights[i].linear);
-
-			sprintf_s(uniform, "pointlight[%i].quadratic", i);
-			normal.setFloat(uniform, pointLights[i].quadratic);
-
-			sprintf_s(uniform, "pointlight[%i].specular", i);
-			normal.setVec3(uniform, pointLights[i].specular);
-		}
-		normal.setMat("view", MainCamera.getViewMat());
-		normal.setMat("projection", proj);
-		normal.setFloat("Time", (float)glfwGetTime());
-		normal.setVec3("ambiant", glm::vec3(0.2f,0.2f,0.2f));
-		normal.setVec3("camPos", MainCamera.pos);
+		setShaders(Shaders, dirLights, pointLights, proj);
 
 		for (int i = 0; i < Objects.size(); i++) {
-			normal.setMat("model", Objects[i].myPos);
-			Objects[i].myMesh.Draw(normal);
+			Objects[i].draw();
 		}
-		normal.setMat("model", RCube.myPos);
-		RCube.myMesh.Draw(normal);
+		RCube.draw();
 
-		normal.setMat("model", GCube.myPos);
-		GCube.myMesh.Draw(normal);
+		GCube.draw();
 
-		normal.setMat("model", BCube.myPos);
-		BCube.myMesh.Draw(normal);
+		BCube.draw();
 
-		Flag.use();
-		Flag.setInt("numDirLights", (int)dirLights.size());
-		for (int i = 0; i < dirLights.size(); i++) {
-			char uniform[64];
+		drawInstancedObj(instanceTest, cube, Instance);
 
-			sprintf_s(uniform, "dirlight[%i].direction", i);
-			Flag.setVec3(uniform, dirLights[i].direction);
-
-			sprintf_s(uniform, "dirlight[%i].color", i);
-			Flag.setVec3(uniform, dirLights[i].color);
-
-			sprintf_s(uniform, "dirlight[%i].specular", i);
-			Flag.setVec3(uniform, dirLights[i].specular);
-		}
-		Flag.setInt("numPointLights", (int)pointLights.size());
-		for (int i = 0; i < pointLights.size(); i++) {
-			char uniform[64];
-
-			sprintf_s(uniform, "pointlight[%i].pos", i);
-			Flag.setVec3(uniform, pointLights[i].position);
-
-			sprintf_s(uniform, "pointlight[%i].color", i);
-			Flag.setVec3(uniform, pointLights[i].color);
-
-			sprintf_s(uniform, "pointlight[%i].constant", i);
-			Flag.setFloat(uniform, pointLights[i].constant);
-
-			sprintf_s(uniform, "pointlight[%i].linear", i);
-			Flag.setFloat(uniform, pointLights[i].linear);
-
-			sprintf_s(uniform, "pointlight[%i].quadratic", i);
-			Flag.setFloat(uniform, pointLights[i].quadratic);
-
-			sprintf_s(uniform, "pointlight[%i].specular", i);
-			Flag.setVec3(uniform, pointLights[i].specular);
-		}
-		Flag.setMat("view", MainCamera.getViewMat());
-		Flag.setMat("projection", proj);
-		Flag.setFloat("Time", (float)glfwGetTime());
-		Flag.setVec3("ambiant", glm::vec3(0.2f, 0.2f, 0.2f));
-		Flag.setVec3("camPos", MainCamera.pos);
-		Flag.setMat("projection", proj);
-		Flag.setMat("model", plane.myPos);
-		plane.myMesh.DrawnUnIndex(Flag);
-
-		Instance.use();
-		Instance.setInt("numDirLights", (int)dirLights.size());
-		for (int i = 0; i < dirLights.size(); i++) {
-			char uniform[64];
-
-			sprintf_s(uniform, "dirlight[%i].direction", i);
-			Flag.setVec3(uniform, dirLights[i].direction);
-
-			sprintf_s(uniform, "dirlight[%i].color", i);
-			Flag.setVec3(uniform, dirLights[i].color);
-
-			sprintf_s(uniform, "dirlight[%i].specular", i);
-			Flag.setVec3(uniform, dirLights[i].specular);
-		}
-		Instance.setInt("numPointLights", (int)pointLights.size());
-		for (int i = 0; i < pointLights.size(); i++) {
-			char uniform[64];
-
-			sprintf_s(uniform, "pointlight[%i].pos", i);
-			Instance.setVec3(uniform, pointLights[i].position);
-
-			sprintf_s(uniform, "pointlight[%i].color", i);
-			Instance.setVec3(uniform, pointLights[i].color);
-
-			sprintf_s(uniform, "pointlight[%i].constant", i);
-			Instance.setFloat(uniform, pointLights[i].constant);
-
-			sprintf_s(uniform, "pointlight[%i].linear", i);
-			Instance.setFloat(uniform, pointLights[i].linear);
-
-			sprintf_s(uniform, "pointlight[%i].quadratic", i);
-			Instance.setFloat(uniform, pointLights[i].quadratic);
-
-			sprintf_s(uniform, "pointlight[%i].specular", i);
-			Instance.setVec3(uniform, pointLights[i].specular);
-		}
-		Instance.setMat("view", MainCamera.getViewMat());
-		Instance.setMat("projection", proj);
-		Instance.setFloat("Time", (float)glfwGetTime());
-		Instance.setVec3("ambiant", glm::vec3(0.2f, 0.2f, 0.2f));
-		Instance.setVec3("camPos", MainCamera.pos);
-		Instance.setMat("projection", proj);
-		Instance.setMat("model", plane.myPos);
-		drawInstancedObj(instanceTest, cube);
 		//Swap the buffs. Check for events.
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -376,21 +257,23 @@ void framebuffer_size_callback(GLFWwindow* windo, int nwidth, int nheight) {
 void processInput(GLFWwindow* window, Camera* cam) {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
-	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		grayScale = false;
+	}
 	if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
 		MainCamera = Camera(glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
-		if (Mouse){
+	if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS && !grayScale)
+		grayScale = true;
+	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS && Mouse) {
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 			Mouse = false;
-		}
-		else {
-			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-			Mouse = true;
-		}
+	}
+	if (glfwGetMouseButton(window, 0) == GLFW_PRESS) {
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		Mouse = true;
 	}
 	//camera control
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
@@ -420,4 +303,51 @@ void mouseCallback(GLFWwindow* window, double x, double y) {
 	if(Mouse)
 		MainCamera.mouseInput(xoff, yoff);
 
+}
+
+void setShaders(std::vector<Shader*> shaders, std::vector<dirLight> dirLights, std::vector<pointLight> pointLights, glm::mat4 proj) {
+	for (int shad = 0; shad < shaders.size(); shad++) {
+		shaders[shad]->use();
+		shaders[shad]->setBool("grayScale", grayScale);
+		shaders[shad]->setInt("numDirLights", (int)dirLights.size());
+		for (int i = 0; i < dirLights.size(); i++) {
+			char uniform[64];
+
+			sprintf_s(uniform, "dirlight[%i].direction", i);
+			shaders[shad]->setVec3(uniform, dirLights[i].direction);
+
+			sprintf_s(uniform, "dirlight[%i].color", i);
+			shaders[shad]->setVec3(uniform, dirLights[i].color);
+
+			sprintf_s(uniform, "dirlight[%i].specular", i);
+			shaders[shad]->setVec3(uniform, dirLights[i].specular);
+		}
+		shaders[shad]->setInt("numPointLights", (int)pointLights.size());
+		for (int i = 0; i < pointLights.size(); i++) {
+			char uniform[64];
+
+			sprintf_s(uniform, "pointlight[%i].pos", i);
+			shaders[shad]->setVec3(uniform, pointLights[i].position);
+
+			sprintf_s(uniform, "pointlight[%i].color", i);
+			shaders[shad]->setVec3(uniform, pointLights[i].color);
+
+			sprintf_s(uniform, "pointlight[%i].constant", i);
+			shaders[shad]->setFloat(uniform, pointLights[i].constant);
+
+			sprintf_s(uniform, "pointlight[%i].linear", i);
+			shaders[shad]->setFloat(uniform, pointLights[i].linear);
+
+			sprintf_s(uniform, "pointlight[%i].quadratic", i);
+			shaders[shad]->setFloat(uniform, pointLights[i].quadratic);
+
+			sprintf_s(uniform, "pointlight[%i].specular", i);
+			shaders[shad]->setVec3(uniform, pointLights[i].specular);
+		}
+		shaders[shad]->setMat("view", MainCamera.getViewMat());
+		shaders[shad]->setMat("projection", proj);
+		shaders[shad]->setFloat("Time", (float)glfwGetTime());
+		shaders[shad]->setVec3("ambiant", glm::vec3(0.2f, 0.2f, 0.2f));
+		shaders[shad]->setVec3("camPos", MainCamera.pos);
+	}
 }

@@ -38,3 +38,13 @@ Texture CreateSpec(std::string Spec) {
 	outTex.type = "Spec";
 	return outTex;
 }
+
+std::vector<Texture> CreateTexture(std::string diff, std::string spec) {
+	Texture temp;
+	std::vector<Texture> out;
+	temp = CreateDiff(diff);
+	out.push_back(temp);
+	temp = CreateSpec(spec);
+	out.push_back(temp);
+	return out;
+}

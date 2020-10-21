@@ -1,11 +1,22 @@
 #pragma once
 
-struct Object {
+class Object {
+public:
 	Mesh myMesh;
 	glm::mat4 myPos = glm::mat4(1.0f);
 	Shader* myShader;
+
+	void draw() {
+		myShader->use();
+		myShader->setMat("model", myPos);
+		myMesh.Draw(*myShader);
+	}
 };
 
+void drawObj(Object obj) {
+	obj.myShader->setMat("model", obj.myPos);
+	obj.myMesh.Draw(*obj.myShader);
+}
 glm::mat4* genRandomPos(glm::vec3 center, float radius = 2.0f, int amount = 100, float scale = 1.0f) {
 	glm::mat4* modelMatrix;
 	modelMatrix = new glm::mat4[amount];
@@ -25,7 +36,9 @@ glm::mat4* genRandomPos(glm::vec3 center, float radius = 2.0f, int amount = 100,
 	return modelMatrix;
 };
 
-void drawInstancedObj(glm::mat4* modelMatrix, Object original) {
+void drawInstancedObj(glm::mat4* modelMatrix, Object original, Shader& instanceShader) {
+	instanceShader.use();
+	instanceShader.setMat("model", original.myPos);
 	unsigned int buffer;
 	glGenBuffers(1, &buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);

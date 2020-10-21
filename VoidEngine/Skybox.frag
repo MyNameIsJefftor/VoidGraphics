@@ -10,8 +10,15 @@ vec2 Tex;
 
 uniform samplerCube skybox;
 
+uniform bool grayScale;
+
 void main()
 {
-	FragColor = textureCube(skybox, ShaderIn.FragPos)+vec4(0.03);
 
+	vec4 fOut = textureCube(skybox, ShaderIn.FragPos)+vec4(0.03);
+	if(grayScale){
+		float gray = (fOut.x+fOut.y+fOut.z)/3;
+		fOut = vec4(vec3(gray),1.0);
+	}
+	FragColor = fOut;
 }

@@ -40,13 +40,17 @@ uniform vec3 ambient;
 uniform mat material;
 uniform vec3 camPos;
 
+uniform bool grayScale;
+
 void main()
 {
     vec3 viewDir = normalize(camPos - ShaderIn.FragPos);
     vec3 dirFinal[maxDirLights];
     vec3 pointFinal[maxPointLights];
     vec3 norm = normalize(ShaderIn.Normal);
-
+    if(texture(material.baseTex, ShaderIn.Tex).a < 0.1){
+        discard;
+    }
     //setup dirlights
     for(int i = 0; i < maxDirLights; i++){
         vec3 lightDir = normalize(-dirlight[i].direction);
@@ -80,6 +84,13 @@ void main()
     }
     for(int i = 0; i < numPointLights; i ++){
         final += vec4((pointFinal[i]),1.0);
+    }
+    if(grayScale){
+        float r = final.x;
+        float g = final.y;
+        float b = final.z;
+        float gray = (r+g+b)/3;
+        final = vec4(vec3(gray), 1.0f);
     }
     FragColor = final;
 }
