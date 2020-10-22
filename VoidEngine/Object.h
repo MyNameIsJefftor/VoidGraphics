@@ -3,21 +3,63 @@
 class Object {
 public:
 	Mesh myMesh;
-	glm::mat4 myPos = glm::mat4(1.0f);
+	glm::vec3 myPos = glm::vec3(0.0f);
+	glm::vec3 myRot = glm::vec3(0.0f);
+	glm::vec3 mySca = glm::vec3(1.0f);
+	glm::mat4 myMat = glm::mat4(1.0f);
 	Shader* myShader;
 
-	Object(Mesh mesh, Shader* shader, glm::mat4 pos = glm::mat4(1.0f)) {
+	Object(Mesh mesh, Shader* shader) {
 		myMesh = mesh;
 		myShader = shader;
+	}
+	void translate(glm::vec3 trans) {
+		myPos += trans;
+	}
+	void setPos(glm::vec3 pos) {
 		myPos = pos;
 	}
-
+	void rotateX(float rot) {
+		myRot.x = rot;
+	}
+	void rotateY(float rot) {
+		myRot.y = rot;
+	}
+	void rotateZ(float rot) {
+		myRot.z = rot;
+	}
+	void basicMat() {
+		myMat = glm::mat4(1.0f);
+		myMat = glm::scale(myMat, mySca);
+		myMat = glm::translate(myMat, myPos);
+		myMat = glm::rotate(myMat, glm::radians(myRot.x), glm::vec3(1, 0, 0));
+		myMat = glm::rotate(myMat, glm::radians(myRot.y), glm::vec3(0, 1, 0));
+		myMat = glm::rotate(myMat, glm::radians(myRot.z), glm::vec3(0, 0, 1));
+	}
+	void swordMat() {
+		myMat = glm::mat4(1.0f);
+		myMat = glm::scale(myMat, mySca);
+		myMat = glm::translate(myMat, myPos);
+		myMat = glm::rotate(myMat, glm::radians(myRot.x), glm::vec3(1, 0, 0));
+		myMat = glm::rotate(myMat, glm::radians(myRot.z), glm::vec3(0, 0, 1));
+		myMat = glm::rotate(myMat, glm::radians(myRot.y), glm::vec3(0, 1, 0));
+	}
+	void gemMat() {
+		myMat = glm::mat4(1.0f);
+		myMat = glm::scale(myMat, mySca);
+		myMat = glm::rotate(myMat, glm::radians(myRot.x), glm::vec3(1, 0, 0));
+		myMat = glm::rotate(myMat, glm::radians(myRot.y), glm::vec3(0, 1, 0));
+		myMat = glm::rotate(myMat, glm::radians(myRot.z), glm::vec3(0, 0, 1));
+		myMat = glm::translate(myMat, myPos);
+	}
 	virtual void draw() {
 		myShader->use();
-		myShader->setMat("model", myPos);
+		myShader->setMat("model", myMat);
 		myMesh.Draw(*myShader);
 	}
 };
+#ifdef OLD
+
 class instancedObj : public Object
 {
 public:
@@ -100,4 +142,4 @@ glm::mat4* genRandomPos(glm::vec3 center, float radius = 2.0f, int amount = 100,
 	}
 	return modelMatrix;
 };
-
+#endif
