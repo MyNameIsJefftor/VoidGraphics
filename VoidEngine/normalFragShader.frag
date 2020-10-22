@@ -90,7 +90,7 @@ void main()
         float g = final.y;
         float b = final.z;
         float gray = (r+g+b)/3;
-        final = vec4(vec3(gray), 1.0f);
+        final = vec4(vec3(gray)+ambient, 1.0f);
     }
-    FragColor = final;
+    FragColor = final + vec4(ambient,1.0);
 }

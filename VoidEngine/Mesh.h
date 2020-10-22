@@ -14,6 +14,7 @@ public:
 	std::vector<Vertex> vertices;
 	std::vector<unsigned int> index;
 	std::vector<Texture> Textures;
+	Mesh() {};
 	Mesh(std::vector<Vertex> verts, std::vector<unsigned int> ind, std::vector<Texture> text);
 	void Draw(Shader& shader);
 	void DrawnUnIndex(Shader& shader);

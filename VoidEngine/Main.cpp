@@ -24,13 +24,22 @@
 #include "TestObj/Building.h"
 #include "TestObj/city_triangulated.h"
 #include "TestObj/groundplane.h"
+#include "TestObj/Orb.h"
+#include "TestObj/knight.h"
 
+struct Scene {
+	std::vector<Object*>* objs;
+	std::vector<dirLight>* dirlight;
+	std::vector<pointLight>* pointlight;
+	std::vector<Shader*>* shaders;
+	glm::vec3 ambi;
+};
 
 
 void framebuffer_size_callback(GLFWwindow* windo, int width, int height);
 void processInput(GLFWwindow* window, Camera* cam);
 void mouseCallback(GLFWwindow* window, double x, double y);
-void setShaders(std::vector<Shader*> shaders, std::vector<dirLight> dirLights, std::vector<pointLight> pointLights, glm::mat4 proj);
+void setShaders(std::vector<Shader*> shaders, std::vector<dirLight> dirLights, std::vector<pointLight> pointLights, glm::mat4 proj, glm::vec3 ambi);
 Camera MainCamera;
 double lastX = 0.0, lastY = 0.0;
 bool firstPass = true, Mouse = true, grayScale = false;
@@ -39,9 +48,11 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 int width = 800, height = 450;
 int awidth = 16, aheight = 9;
+int sceneNum = 0, maxScene = 2;
 float aspect = awidth / aheight;
 
 int main() {
+	srand(14);
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -75,14 +86,17 @@ int main() {
 	//Shader basic("BasicVertShader.vs", "BasicFragShader.fs");
 	Shader normal("normalVertShader.vert", "normalFragShader.frag");
 	//Shader GeomTest("VertTest.vert", "fragTest.frag", "test.geom");
-	Shader Flag("wave.vert", "normalFragShader.frag", "VertsToTriangles.geom");
+	Shader Flag("wave.vert", "normalFragShader.frag");
 	Shader Instance("instance.vert", "normalFragShader.frag");
 	Shader SkyboxShad("Skybox.vert", "Skybox.frag");
 
 	//Arrays
-	std::vector<Object> Objects;
-	std::vector<dirLight> dirLights;
-	std::vector<pointLight> pointLights;
+	std::vector<Object*> mainObjects;
+	std::vector<dirLight> maindirLights;
+	std::vector<pointLight> mainpointLights;
+	std::vector<Object*> secondObjects;
+	std::vector<dirLight> seconddirLights;
+	std::vector<pointLight> secondpointLights;
 	std::vector<Shader*> Shaders;
 
 	Shaders.push_back(&normal);
@@ -90,49 +104,134 @@ int main() {
 	Shaders.push_back(&Instance);
 
 	//Convert obj from header to my format
-	
-	std::vector<Vertex> headerImport;
-	headerImport.resize(sizeof(city_triangulated_data)/sizeof(OBJ_VERT));
+#pragma region MyThemeImport
+#pragma region CityImport
+	std::vector<Vertex> CityImport;
+	CityImport.resize(sizeof(city_triangulated_data) / sizeof(OBJ_VERT));
 	for (int i = 0; i < sizeof(city_triangulated_data) / sizeof(OBJ_VERT); i++) {
 		float x = city_triangulated_data[i].pos[0];
 		float y = city_triangulated_data[i].pos[1];
 		float z = city_triangulated_data[i].pos[2];
-		headerImport[i].Position = glm::vec3(x,y,z);
+		CityImport[i].Position = glm::vec3(x, y, z);
 		x = city_triangulated_data[i].nrm[0];
 		y = city_triangulated_data[i].nrm[1];
 		z = city_triangulated_data[i].nrm[2];
-		headerImport[i].Normal = glm::vec3(x, y, z);
+		CityImport[i].Normal = glm::vec3(x, y, z);
 		x = city_triangulated_data[i].uvw[0];
 		y = city_triangulated_data[i].uvw[1];
-		headerImport[i].TexCord = glm::vec2(x, y)*3.0f;
-		headerImport[i].Color = glm::vec3(0.5f, 0.5f, 0.0f);
+		CityImport[i].TexCord = glm::vec2(x, y);
+		CityImport[i].Color = glm::vec3(0.5f, 0.5f, 0.0f);
 	}
-	std::vector<unsigned int> tempInd;
-	tempInd.resize(sizeof(city_triangulated_indicies) / sizeof(unsigned int));
-	for (int i = 0; i < sizeof(city_triangulated_indicies)/sizeof(unsigned int); i++) {
-		tempInd[i] = city_triangulated_indicies[i];
+	std::vector<unsigned int> CityInd;
+	CityInd.resize(sizeof(city_triangulated_indicies) / sizeof(unsigned int));
+	for (int i = 0; i < sizeof(city_triangulated_indicies) / sizeof(unsigned int); i++) {
+		CityInd[i] = city_triangulated_indicies[i];
 	}
+#pragma endregion
+#pragma region ResourceImport
+	std::vector<Vertex> ResImport;
+	ResImport.resize(sizeof(resources_data) / sizeof(OBJ_VERT));
+	for (int i = 0; i < sizeof(resources_data) / sizeof(OBJ_VERT); i++) {
+		float x = resources_data[i].pos[0] * 0.2f;
+		float y = resources_data[i].pos[1] * 0.2f;
+		float z = resources_data[i].pos[2] * 0.2f;
+		ResImport[i].Position = glm::vec3(x, y, z);
+		x = resources_data[i].nrm[0];
+		y = resources_data[i].nrm[1];
+		z = resources_data[i].nrm[2];
+		ResImport[i].Normal = glm::vec3(x, y, z);
+		x = resources_data[i].uvw[0];
+		y = resources_data[i].uvw[1];
+		ResImport[i].TexCord = glm::vec2(x, y);
+		ResImport[i].Color = glm::vec3(0.5f, 0.5f, 0.0f);
+	}
+	std::vector<unsigned int> ResourceInd;
+	ResourceInd.resize(sizeof(resources_indicies) / sizeof(unsigned int));
+	for (int i = 0; i < sizeof(resources_indicies) / sizeof(unsigned int); i++) {
+		ResourceInd[i] = resources_indicies[i];
+	}
+#pragma endregion
+#pragma region OrbImport
+	std::vector<Vertex> OrbImport;
+	OrbImport.resize(sizeof(Orb_data) / sizeof(OBJ_VERT));
+	for (int i = 0; i < sizeof(Orb_data) / sizeof(OBJ_VERT); i++) {
+		float x = Orb_data[i].pos[0] * 0.2f;
+		float y = Orb_data[i].pos[1] * 0.2f;
+		float z = Orb_data[i].pos[2] * 0.2f;
+		OrbImport[i].Position = glm::vec3(x, y, z);
+		x = Orb_data[i].nrm[0];
+		y = Orb_data[i].nrm[1];
+		z = Orb_data[i].nrm[2];
+		OrbImport[i].Normal = glm::vec3(x, y, z);
+		x = Orb_data[i].uvw[0];
+		y = Orb_data[i].uvw[1];
+		OrbImport[i].TexCord = glm::vec2(x, y);
+		OrbImport[i].Color = glm::vec3(0.5f, 0.5f, 0.0f);
+	}
+	std::vector<unsigned int> OrbInd;
+	OrbInd.resize(sizeof(Orb_indicies) / sizeof(unsigned int));
+	for (int i = 0; i < sizeof(Orb_indicies) / sizeof(unsigned int); i++) {
+		OrbInd[i] = Orb_indicies[i];
+	}
+#pragma endregion
+#pragma endregion
+
+#pragma region HolyGrailImport
+#pragma region KnightImport
+	std::vector<Vertex> KnightImport;
+	KnightImport.resize(sizeof(knight_data) / sizeof(OBJ_VERT));
+	for (int i = 0; i < sizeof(knight_data) / sizeof(OBJ_VERT); i++) {
+		float x = knight_data[i].pos[0];
+		float y = knight_data[i].pos[1];
+		float z = knight_data[i].pos[2];
+		KnightImport[i].Position = glm::vec3(x, y, z);
+		x = knight_data[i].nrm[0];
+		y = knight_data[i].nrm[1];
+		z = knight_data[i].nrm[2];
+		KnightImport[i].Normal = glm::vec3(x, y, z);
+		x = knight_data[i].uvw[0];
+		y = knight_data[i].uvw[1];
+		KnightImport[i].TexCord = glm::vec2(x, y);
+		KnightImport[i].Color = glm::vec3(0.5f, 0.5f, 0.0f);
+	}
+	std::vector<unsigned int> KnightInd;
+	KnightInd.resize(sizeof(knight_indicies) / sizeof(unsigned int));
+	for (int i = 0; i < sizeof(knight_indicies) / sizeof(unsigned int); i++) {
+		KnightInd[i] = knight_indicies[i];
+	}
+#pragma endregion
+#pragma endregion
 	// load and create a texture 
 	// -------------------------
-	std::vector<Texture> Resource;
-	Texture temp = CreateDiff("Texture/Resource.ktx");
-	Resource.push_back(temp);
-	temp = CreateSpec("Texture/Resource_Spec.ktx");
-	Resource.push_back(temp);
 
 	Skybox Skybox = CreateSkybox("Texture/Skybox.ktx", SkyboxShad);
 
-	Object cube = { CreateCube(Resource), glm::mat4(1.0f), &Instance};
-	Object plane = { generatePlane(Resource,3), glm::mat4(1.0f) , &Flag};
-	Object Buildings = { Mesh(headerImport, tempInd, CreateTexture("Texture/citydiff.ktx","Texture/cityspec.ktx")), glm::mat4(1.0), &normal };
-	plane.myPos = glm::translate(plane.myPos, glm::vec3(0.0f, -1.0f, 0.0f));
-	Buildings.myPos = glm::scale(Buildings.myPos, glm::vec3(2.0f));
-	Objects.push_back(Buildings);
-	Objects.push_back(plane);
+	Mesh ResourceMesh = Mesh(ResImport, ResourceInd, CreateTexture("Texture/Resource_diff.ktx", "Texture/Resource_spec.ktx"));
+	Mesh OrbMesh(OrbImport, OrbInd, CreateTexture("Texture/planet_diff.ktx", "Texture/planet_spec.ktx"));
+	Object City ( Mesh(CityImport, CityInd, CreateTexture("Texture/citydiff.ktx","Texture/cityspec.ktx")), &normal );
+	Object Orb (OrbMesh, &normal);
+	City.myPos = glm::translate(City.myPos, glm::vec3(0.0f, 1.08f, 0.0f));
+	City.myPos = glm::rotate(City.myPos, glm::radians(-1.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	City.myPos = glm::scale(City.myPos, glm::vec3(0.25f));
+	Orb.myPos = glm::translate(Orb.myPos, glm::vec3(0.0f, -0.5f, 0.0f));
+	Orb.myPos = glm::scale(Orb.myPos, glm::vec3(8.0f));
+	mainObjects.push_back(&Orb);
+	mainObjects.push_back(&City);
+	Mesh basicCube = CreateCube(CreateTexture("Texture/crate_diff.ktx", "Texture/Resource_spec.ktx"), 0.125f);
+	Object RCube(OrbMesh, &normal);
+	Object GCube(OrbMesh, &normal);
+	Object BCube(OrbMesh, &normal);
 
-	Object RCube { CreateCube(Resource,0.125f), glm::mat4(1.0f), &normal };
-	Object GCube { CreateCube(Resource,0.125f), glm::mat4(1.0f), &normal };
-	Object BCube { CreateCube(Resource,0.125f), glm::mat4(1.0f), &normal };
+	Object KnightObj(Mesh(KnightImport, KnightInd, CreateTexture("Texture/knight_diff.ktx", "Texture/knight_spec.ktx")), &normal);
+	Object FlagObj(generatePlane(CreateTexture("Texture/banner_diff.ktx", "Texture/banner_spec.ktx"), 5), &Flag);
+	Object ground(generatePlane(CreateTexture("Texture/grass_diff.ktx", "Texture/cityspec.ktx"), 5), &normal);
+	ground.myPos = glm::translate(ground.myPos, glm::vec3(0.0f, -2.45f, 0.0f));
+	FlagObj.myPos = glm::rotate(FlagObj.myPos, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	FlagObj.myPos = glm::translate(FlagObj.myPos, glm::vec3(0.0f, 2.0f, 0.0f));
+	KnightObj.myPos = glm::scale(KnightObj.myPos, glm::vec3(0.25f));
+	secondObjects.push_back(&KnightObj);
+	secondObjects.push_back(&FlagObj);
+	secondObjects.push_back(&ground);
 
 	//Tell gl to put the universe into perspective
 	glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
@@ -145,18 +244,24 @@ int main() {
 	glm::vec3 lightPos = glm::vec3(0.0f, 1.0f, 0.0f);
 
 	//create lights
-	dirLight sun = {
+	dirLight mainSun = {
 		glm::normalize(glm::vec3(-0.25f, -1.0f, -0.25f)),
 		glm::vec3(0.8f,0.4f,0.2f),
 		glm::vec3(0.3f,0.2f,0.1f)
 	};
-	dirLight moon = {
+	dirLight mainMoon = {
 		glm::normalize(glm::vec3(0.25f, 1.0f, 0.25f)),
 		glm::vec3(0.2f,0.3f,0.4f),
 		glm::vec3(0.2f,0.3f,0.4f)
 	};
-	dirLights.push_back(sun);
-	dirLights.push_back(moon);
+	maindirLights.push_back(mainSun);
+	maindirLights.push_back(mainMoon);
+	dirLight secondSun = {
+		glm::normalize(glm::vec3(-0.25f, -1.0f, -0.25f)),
+		glm::vec3(1.0f,0.8f,0.5f),
+		glm::vec3(1.0f,0.8f,0.5f)
+	};
+	seconddirLights.push_back(secondSun);
 
 	pointLight red = {
 		glm::vec3(-1.0f, 0.0f, 0.0f),
@@ -182,12 +287,30 @@ int main() {
 		1.8f,
 		glm::vec3(0.0f,0.0f,1.0f)
 	};
-	pointLights.push_back(red);
-	pointLights.push_back(green);
-	pointLights.push_back(blue);
-
-	glm::mat4* instanceTest = genRandomPos(glm::vec3(0.0f, 1.0f, 0.0f), 1.0f, 100, 0.0625f);
-
+	pointLight purpFairy = {
+		glm::vec3(0.0f, 0.0f, 0.0f),
+		glm::vec3(0.8f, 0.1f, 0.9f),
+		1.0f,
+		0.7f,
+		5.0f,
+		glm::vec3(0.8f,0.1f,0.9f)
+	};
+	mainpointLights.push_back(red);
+	mainpointLights.push_back(green);
+	mainpointLights.push_back(blue);
+	secondpointLights.push_back(purpFairy);
+	
+	glm::mat4* instanceTest = genRandomPos(glm::vec3(0.0f), 2.0f, 100, 0.0625f);
+	instancedObj cubes( ResourceMesh, &Instance, instanceTest);
+	mainObjects.push_back(&cubes);
+	mainObjects.push_back(&RCube);
+	mainObjects.push_back(&GCube);
+	mainObjects.push_back(&BCube);
+	Scene Main = { &mainObjects, &maindirLights, &mainpointLights, &Shaders, glm::vec3(0.01f) };
+	Scene Secondary = { &secondObjects, &seconddirLights, &secondpointLights, &Shaders, glm::vec3(0.015f) };
+	std::vector<Scene> scenes;
+	scenes.push_back(Main);
+	scenes.push_back(Secondary);
 	while (!glfwWindowShouldClose(window)) {
 		//Calc delta
 		float currentFrame = (float)glfwGetTime();
@@ -196,16 +319,16 @@ int main() {
 
 		//Get input
 		processInput(window, &MainCamera);
-		float sinlightz = 1.0f * sin((float)glfwGetTime());
-		float sinlighty = 1.0f * sin((float)glfwGetTime());
-		float coslighty = 1.0f * cos((float)glfwGetTime());
-		float coslightx = 1.0f * cos((float)glfwGetTime());
-		pointLights[0].position = glm::vec3(coslightx, sinlighty, 0.0f);
-		pointLights[1].position = glm::vec3(coslightx, 0.0f, sinlightz);
-		pointLights[2].position = glm::vec3(0.0f, coslighty, sinlightz);
-		RCube.myPos = glm::translate(glm::mat4(1.0f), pointLights[0].position);
-		GCube.myPos = glm::translate(glm::mat4(1.0f), pointLights[1].position);
-		BCube.myPos = glm::translate(glm::mat4(1.0f), pointLights[2].position);
+		float sinlightz = 2.5f * sin((float)glfwGetTime());
+		float sinlighty = 2.5f * sin((float)glfwGetTime());
+		float coslighty = 2.5f * cos((float)glfwGetTime());
+		float coslightx = 2.5f * cos((float)glfwGetTime());
+		mainpointLights[0].position = glm::vec3(coslightx, sinlighty, 0.0f);
+		mainpointLights[1].position = glm::vec3(coslightx, 0.0f, sinlightz);
+		mainpointLights[2].position = glm::vec3(0.0f, coslighty, sinlightz);
+		RCube.myPos = glm::translate(glm::mat4(1.0f), mainpointLights[0].position);
+		GCube.myPos = glm::translate(glm::mat4(1.0f), mainpointLights[1].position);
+		BCube.myPos = glm::translate(glm::mat4(1.0f), mainpointLights[2].position);
 		//Perform WRENDER
 		//glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -227,19 +350,10 @@ int main() {
 
 		//basic.use();
 		//update the lights
-		setShaders(Shaders, dirLights, pointLights, proj);
-
-		for (int i = 0; i < Objects.size(); i++) {
-			Objects[i].draw();
+		setShaders(*scenes[sceneNum].shaders, *scenes[sceneNum].dirlight, *scenes[sceneNum].pointlight, proj, scenes[sceneNum].ambi);
+		for (int i = 0; i < scenes[sceneNum].objs->size(); i++) {
+			scenes[sceneNum].objs[0][i]->draw();
 		}
-		RCube.draw();
-
-		GCube.draw();
-
-		BCube.draw();
-
-		drawInstancedObj(instanceTest, cube, Instance);
-
 		//Swap the buffs. Check for events.
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -275,6 +389,10 @@ void processInput(GLFWwindow* window, Camera* cam) {
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		Mouse = true;
 	}
+	if (glfwGetKey(window, GLFW_KEY_KP_1) == GLFW_PRESS)
+		sceneNum = 1;
+	if (glfwGetKey(window, GLFW_KEY_KP_0) == GLFW_PRESS)
+		sceneNum = 0;
 	//camera control
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 		MainCamera.keyboardInput(Forward, deltaTime);
@@ -305,7 +423,7 @@ void mouseCallback(GLFWwindow* window, double x, double y) {
 
 }
 
-void setShaders(std::vector<Shader*> shaders, std::vector<dirLight> dirLights, std::vector<pointLight> pointLights, glm::mat4 proj) {
+void setShaders(std::vector<Shader*> shaders, std::vector<dirLight> dirLights, std::vector<pointLight> pointLights, glm::mat4 proj, glm::vec3 ambi) {
 	for (int shad = 0; shad < shaders.size(); shad++) {
 		shaders[shad]->use();
 		shaders[shad]->setBool("grayScale", grayScale);
@@ -347,7 +465,7 @@ void setShaders(std::vector<Shader*> shaders, std::vector<dirLight> dirLights, s
 		shaders[shad]->setMat("view", MainCamera.getViewMat());
 		shaders[shad]->setMat("projection", proj);
 		shaders[shad]->setFloat("Time", (float)glfwGetTime());
-		shaders[shad]->setVec3("ambiant", glm::vec3(0.2f, 0.2f, 0.2f));
+		shaders[shad]->setVec3("ambient", ambi);
 		shaders[shad]->setVec3("camPos", MainCamera.pos);
 	}
 }
