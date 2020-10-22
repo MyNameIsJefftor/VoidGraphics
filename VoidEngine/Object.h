@@ -23,7 +23,7 @@ public:
 		myRot.x = rot;
 	}
 	void rotateY(float rot) {
-		myRot.y = rot;
+		myRot.y += rot;
 	}
 	void rotateZ(float rot) {
 		myRot.z = rot;

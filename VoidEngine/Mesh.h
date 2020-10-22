@@ -66,6 +66,10 @@ void Mesh::Draw(Shader& shader) {
 			glBindTexture(GL_TEXTURE_2D, Textures[i].id);
 			shader.setInt("material.baseTex", i);
 		}
+		else if (Textures[i].type == "CubeMap") {
+			glBindTexture(GL_TEXTURE_CUBE_MAP, Textures[i].id);
+			shader.setInt("material.baseTex", i);
+		}
 	}
 
 	glActiveTexture(GL_TEXTURE0);
@@ -84,6 +88,10 @@ void Mesh::DrawnUnIndex(Shader& shader) {
 		}
 		else if (Textures[i].type == "Diff") {
 			glBindTexture(GL_TEXTURE_2D, Textures[i].id);
+			shader.setInt("material.baseTex", i);
+		}
+		else if (Textures[i].type == "CubeMap") {
+			glBindTexture(GL_TEXTURE_CUBE_MAP, Textures[i].id);
 			shader.setInt("material.baseTex", i);
 		}
 	}
@@ -172,7 +180,7 @@ Mesh generatePlane(std::vector<Texture> tex, float scale = 1, glm::vec3 Color = 
 			temp.Position = glm::vec3(x, 0.0f, z)*scale;
 			temp.Color = glm::vec3(0.5f, 0.5f, 0.5f);
 			temp.Normal = glm::vec3(0.0f, 1.0f, 0.0f);
-			temp.TexCord = glm::vec2(x*2, z*2);
+			temp.TexCord = glm::vec2(x*10, z*10);
 			Plane.push_back(temp);
 		}
 	}

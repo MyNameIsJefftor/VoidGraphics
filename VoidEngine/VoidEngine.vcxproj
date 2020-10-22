@@ -171,12 +171,14 @@
   <ItemGroup>
     <None Include="BasicFragShader.frag" />
     <None Include="BasicVertShader.vert" />
+    <None Include="gem.frag" />
     <None Include="instance.vert" />
     <None Include="normalFragShader.frag" />
     <None Include="GEOLAYOUT.geom" />
     <None Include="normalVertShader.vert" />
     <None Include="Skybox.frag" />
     <None Include="Skybox.vert" />
+    <None Include="sword.frag" />
     <None Include="VertsToTriangles.geom" />
     <None Include="wave.vert" />
   </ItemGroup>

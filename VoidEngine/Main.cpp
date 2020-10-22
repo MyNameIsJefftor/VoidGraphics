@@ -90,8 +90,6 @@ int main() {
 	//Shader basic("BasicVertShader.vs", "BasicFragShader.fs");
 	Shader normal("normalVertShader.vert", "normalFragShader.frag");
 	//Shader GeomTest("VertTest.vert", "fragTest.frag", "test.geom");
-	Shader Flag("wave.vert", "normalFragShader.frag");
-	Shader Instance("instance.vert", "normalFragShader.frag");
 	Shader SkyboxShad("Skybox.vert", "Skybox.frag");
 
 	Shader gemShader("normalVertShader.vert", "gem.frag");
@@ -127,7 +125,7 @@ int main() {
 		x = redgem_data[i].uvw[0];
 		y = redgem_data[i].uvw[1];
 		redgemImport[i].TexCord = glm::vec2(x, y);
-		redgemImport[i].Color = glm::vec3(1.0f, 0, 0);
+		redgemImport[i].Color = glm::vec3(1.0f, 0.0f, 0.0f);
 	}
 	std::vector<unsigned int> redgemInd;
 	redgemInd.resize(sizeof(redgem_indicies) / sizeof(unsigned int));
@@ -150,7 +148,7 @@ int main() {
 		x = greengem_data[i].uvw[0];
 		y = greengem_data[i].uvw[1];
 		greengemImport[i].TexCord = glm::vec2(x, y);
-		redgemImport[i].Color = glm::vec3(0, 1.0f, 0);
+		greengemImport[i].Color = glm::vec3(0, 1.0f, 0);
 	}
 	std::vector<unsigned int> greengemInd;
 	greengemInd.resize(sizeof(greengem_indicies) / sizeof(unsigned int));
@@ -173,7 +171,7 @@ int main() {
 		x = bluegem_data[i].uvw[0];
 		y = bluegem_data[i].uvw[1];
 		bluegemImport[i].TexCord = glm::vec2(x, y);
-		redgemImport[i].Color = glm::vec3(0, 0, 1.0f);
+		bluegemImport[i].Color = glm::vec3(0, 0, 1.0f);
 	}
 	std::vector<unsigned int> bluegemInd;
 	bluegemInd.resize(sizeof(bluegem_indicies) / sizeof(unsigned int));
@@ -196,7 +194,7 @@ int main() {
 		x = skullsword_data[i].uvw[0];
 		y = skullsword_data[i].uvw[1];
 		skullswordImport[i].TexCord = glm::vec2(x, y);
-		skullswordImport[i].Color = glm::vec3(0.5f, 0.5f, 0.0f);
+		skullswordImport[i].Color = glm::vec3(1.0f);
 	}
 	std::vector<unsigned int> skullswordInd;
 	skullswordInd.resize(sizeof(skullsword_indicies) / sizeof(unsigned int));
@@ -214,8 +212,10 @@ int main() {
 	Objects.push_back(&redGemObj);
 	Objects.push_back(&greenGemObj);
 	Objects.push_back(&blueGemObj);
-	/*Objects.push_back(&skullsword1);
-	Objects.push_back(&skullsword2);*/
+	Objects.push_back(&skullsword1);
+	Objects.push_back(&skullsword2);
+	skullsword1.mySca = glm::vec3(0.5f);
+	skullsword2.mySca = glm::vec3(0.5f);
 	ground.mySca = glm::vec3(120);
 	ground.basicMat();
 	Objects.push_back(&ground);
@@ -245,6 +245,9 @@ int main() {
 		0.01f,
 		glm::vec3(0,0,0.5)
 	};
+	pointLights.push_back(&redLight);
+	pointLights.push_back(&blueLight);
+	pointLights.push_back(&greenLight);
 #ifdef OLD
 
 
@@ -473,6 +476,8 @@ int main() {
 	blueGemObj.setPos(glm::vec3(0, 2, 4));
 	blueGemObj.rotateY(offset*3);
 
+	skullsword1.myRot = glm::vec3(0, 0, 45);
+	skullsword2.myRot = glm::vec3(0, 0, -45);
 	while (!glfwWindowShouldClose(window)) {
 		//Calc delta
 		float currentFrame = (float)glfwGetTime();
@@ -482,17 +487,29 @@ int main() {
 		//Get input
 		processInput(window, &MainCamera);
 
+		//gems
+		redGemObj.rotateY(1/2.0f);
 		redGemObj.gemMat();
 		glm::vec4 redpos = redGemObj.myMat * glm::vec4(redGemObj.myPos, 0);
 		redLight.position = redpos;
 
+		greenGemObj.rotateY(1 / 2.0f);
 		greenGemObj.gemMat();
 		glm::vec4 greenpos = greenGemObj.myMat * glm::vec4(greenGemObj.myPos, 0);
 		greenLight.position = greenpos;
 
+		blueGemObj.rotateY(1 / 2.0f);
 		blueGemObj.gemMat();
 		glm::vec4 bluepos = blueGemObj.myMat * glm::vec4(blueGemObj.myPos, 0);
 		blueLight.position = bluepos;
+
+		//Swords
+		skullsword1.rotateY(1 / 2.0f);
+		skullsword2.rotateY(1 / 2.0f);
+		skullsword1.myPos = glm::vec3(0, glm::sin(glfwGetTime())+3.5, -0.5f);
+		skullsword2.myPos = glm::vec3(0, glm::cos(glfwGetTime()) + 3.5, 0.5f);
+		skullsword1.swordMat();
+		skullsword2.swordMat();
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		//DrawSkybox
@@ -511,7 +528,7 @@ int main() {
 
 		//basic.use();
 		//update the lights
-		setShaders(Shaders, dirLights, pointLights, proj, glm::vec3(0.1));
+		setShaders(Shaders, dirLights, pointLights, proj, glm::vec3(0.2));
 		for (int i = 0; i < Objects.size(); i++) {
 			Objects[i]->draw();
 		}

@@ -103,5 +103,11 @@
     <None Include="Skybox.frag">
       <Filter>Shaders\Frag</Filter>
     </None>
+    <None Include="gem.frag">
+      <Filter>Shaders\Frag</Filter>
+    </None>
+    <None Include="sword.frag">
+      <Filter>Shaders\Frag</Filter>
+    </None>
   </ItemGroup>
 </Project>
